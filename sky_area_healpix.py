@@ -67,8 +67,9 @@ class HealpixSkyPosterior(object):
 
         zero_sel = density == 0.0
         nzero = np.count_nonzero(zero_sel)
-        density[zero_sel] = 0.5/nzero # put 1/2 a count in total of
-                                      # zero region
+        if nzero > 0:
+            density[zero_sel] = 0.5/nzero # put 1/2 a count in total
+                                          # of zero region
 
         density /= dV*np.sum(density)
 
