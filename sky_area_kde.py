@@ -1,5 +1,7 @@
 import bisect
+import healpy
 import numpy as np
+from scipy.stats import gaussian_kde
 
 class SkyPosterior(object):
     def __init__(self, pts):
@@ -83,36 +85,62 @@ class SkyPosterior(object):
 
         pls = self.posterior_level(cfs)
         
-        n = 10
-        old_areas = np.array([float('-inf') for cf in cfs])
+        nside = 2
+        old_areas = np.zeros(cfs.shape)
 
         while True:
-            ras = np.linspace(0, 2*np.pi, n)
-            sin_decs = np.linspace(-1, 1, n/2)
-            dv = 4.0*np.pi/((n-1)*(n/2-1))
+            theta, phi = healpy.pix2ang(nside, np.arange(0, healpy.nside2npix(nside), dtype=np.int))
+            ras = phi
+            decs = np.pi/2.0 - theta
 
-            ra_cen = 0.5*(ras[:-1] + ras[1:])
-            sin_dec_cen = 0.5*(sin_decs[:-1] + sin_decs[1:])
+            pts = np.column_stack((ras, decs))
 
-            RA_CEN,SIN_DEC_CEN = np.meshgrid(ra_cen, sin_dec_cen)
-
-            pts = np.column_stack((RA_CEN.flatten(), SIN_DEC_CEN.flatten()))
-            pts[:,1] = np.arcsin(pts[:,1])
-
-            posts = self.posterior(pts)
-
+            post_at_pts = self.posterior(pts)
             areas = []
             for pl in pls:
-                areas.append(dv*np.sum(posts > pl))
-            areas=np.array(areas)
+                nabove = np.count_nonzero(post_at_pts > pl)
+                areas.append(nabove*healpy.nside2pixarea(nside))
+            areas = np.array(areas)
 
-            if np.all(areas > 0) and np.all(np.abs((areas-old_areas)/areas) < 0.01):
+            print nside, areas
+
+            if np.all(areas > 0) and np.all(np.abs((areas-old_areas)/areas) < 1e-2):
                 break
 
             old_areas = areas
-            n *= 2
+            nside *= 2
 
         return areas
+
+    def sky_area_fixed_resolution(self, nside, cfs):
+        cfs = np.atleast_2d(cfs)
+
+        counts = np.zeros(healpy.nside2npix(nside), dtype=np.int)
+        for p in self.pts:
+            ra = p[0]
+            dec = np.arcsin(p[1])
+
+            theta = np.pi/2.0 - dec
+            phi = ra
+
+            counts[healpy.ang2pix(nside, theta, phi)] += 1
+
+        theta_cen, phi_cen = healpy.pix2ang(nside, np.arange(0, healpy.nside2npix(nside), dtype=np.int))
+        ra_cen = phi_cen
+        dec_cen = np.pi/2.0 - theta_cen
+
+        post_cen = self.posterior(np.column_stack((ra_cen, dec_cen)))
+        greedy_order = np.argsort(post_cen)[::-1]
+        counts_greedy = counts[greedy_order]
+        counts_greedy_cum = np.cumsum(counts_greedy)
+
+        areas = []
+        for cf in cfs:
+            count_threshold = int(round(cf*healpy.nside2npix(nside)))
+            nsearched = bisect.bisect_right(counts_greedy_cum, count_threshold)
+            areas.append(nsearched*healpy.nside2pixarea(nside))
+
+        return np.array(areas)
 
     def to_degrees(self, sr):
         return sr*180.0/np.pi*180.0/np.pi
