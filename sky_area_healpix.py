@@ -4,6 +4,10 @@ import healpy
 import numpy as np
 
 class HealpixSkyPosterior(object):
+    r"""Class that represents the posterior 
+
+    """
+
     def __init__(self, pts, nside=None):
         self._pts = pts
         npts = self.pts.shape[0]
@@ -16,12 +20,8 @@ class HealpixSkyPosterior(object):
         self._den_map = self.density_map(pts[:npts/2, :])
         self._gr_order = self.greedy_order(pts[npts/2:, :])
 
-        self._gr_order_inv = np.zeros(self.gr_order.shape[0], dtype=np.int)
-        for i, gri in enumerate(self.gr_order):
-            self.gr_order_inv[gri] = i
-
         dV = healpy.nside2pixarea(self.nside)
-        self._cum_den = dV*np.cumsum(self.den_map[self.gr_order])
+        self._cum_den = dV*np.cumsum(self.den_map[self.gr_order])[np.argsort(self.gr_order)]
 
     @property
     def pts(self):
@@ -38,10 +38,6 @@ class HealpixSkyPosterior(object):
     @property
     def gr_order(self):
         return self._gr_order
-
-    @property
-    def gr_order_inv(self):
-        return self._gr_order_inv
 
     @property
     def cum_den(self):
@@ -68,8 +64,8 @@ class HealpixSkyPosterior(object):
         zero_sel = density == 0.0
         nzero = np.count_nonzero(zero_sel)
         if nzero > 0:
-            density[zero_sel] = 0.5/nzero # put 1/2 a count in total
-                                          # of zero region
+            density[zero_sel] = np.random.uniform(low=0.0, high=1.0/nzero, size=nzero)
+            # put an average of 1/2 a count in total of zero region
 
         density /= dV*np.sum(density)
 
@@ -126,4 +122,4 @@ class HealpixSkyPosterior(object):
 
         pix = self.pts2pix(pts)
         
-        return self.gr_order_inv[pix]/float(self.gr_order_inv.shape[0])
+        return self.cum_den[pix]
