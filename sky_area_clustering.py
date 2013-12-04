@@ -434,6 +434,6 @@ class ClusteredKDEPosterior(object):
 
         indexes = []
         for pl in post_levels:
-            index.append(bs.bisect(greedy_levels, pl))
+            indexes.append(bs.bisect(greedy_levels, pl))
 
-        return float(n-np.array(indexes))/float(n)
+        return 1.0 - np.array(indexes)/float(n)
