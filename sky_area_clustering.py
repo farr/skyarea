@@ -98,6 +98,15 @@ class ClusteredKDEPosterior(object):
     with a decorrelated metric.  The overall clustering behavior is
     similar to the well-known `X-Means
     <http://www.cs.cmu.edu/~dpelleg/download/xmeans.pdf>`_ algorithm.
+
+    In order to produce an unbiased estimate of credible areas, the
+    algorithm follows a two-step process.  The set of input points is
+    divided into two independent sets.  The first of these sets is
+    used to establish a clustered KDE as described above; then the
+    second set of points is ranked under this clustered KDE to
+    establish a mapping from KDE contours to credible levels.  The
+    different point sets are accessible as the ``self.kde_pts`` and
+    ``self.ranking_pts`` arrays in the object.
     
     """
 
@@ -123,6 +132,11 @@ class ClusteredKDEPosterior(object):
         pts = pts.copy()
         pts[:,1] = np.sin(pts[:,1])
         self._pts = pts
+
+        ppts = np.random.permutation(pts)
+
+        self._kde_pts = ppts[::2]
+        self._ranking_pts = ppts[1::2]
         self._ntrials = ntrials
 
         if means is None or assign is None:
@@ -229,6 +243,21 @@ class ClusteredKDEPosterior(object):
         return self._pts
 
     @property
+    def kde_pts(self):
+        """Return the subset of points used to construct the KDE.
+
+        """
+        return self._kde_pts
+
+    @property
+    def ranking_pts(self):
+        """Return the set of points used that are ranked under the KDE to
+        establish credible levels.
+
+        """
+        return self._ranking_pts
+
+    @property
     def k(self):
         """Returns the optimized number of clusters.
 
@@ -266,7 +295,7 @@ class ClusteredKDEPosterior(object):
 
     @property
     def greedy_order(self):
-        """Returns the ordering of ``self.pts`` from highest to lowest
+        """Returns the ordering of ``self.ranking_pts`` from highest to lowest
         posterior values.
 
         """
@@ -274,7 +303,7 @@ class ClusteredKDEPosterior(object):
 
     @property
     def greedy_posteriors(self):
-        """Returns the posterior values at ``self.pts`` in greedy order.
+        """Returns the posterior values at ``self.ranking_pts`` in greedy order.
 
         """
         return self._greedy_posteriors
@@ -298,7 +327,7 @@ class ClusteredKDEPosterior(object):
         self._k = k
 
         if means is None or assign is None:
-            self._means, self._assign = k_means(self.pts, k)
+            self._means, self._assign = k_means(self.kde_pts, k)
         else:
             self._means = means
             self._assign = assign
@@ -311,12 +340,12 @@ class ClusteredKDEPosterior(object):
                 self._kdes.append(lambda x : 0.0)
                 self._weights.append(0.0)
             else:
-                self._kdes.append(gaussian_kde(self.pts[sel,:].T))
-                self._weights.append(float(np.count_nonzero(sel))/float(self.pts.shape[0]))
+                self._kdes.append(gaussian_kde(self.kde_pts[sel,:].T))
+                self._weights.append(float(np.count_nonzero(sel))/float(self.kde_pts.shape[0]))
         self._weights = np.array(self.weights)
 
     def _set_up_greedy_order(self):
-        pts = self.pts.copy()
+        pts = self.ranking_pts.copy()
         pts[:,1] = np.arcsin(pts[:,1])
 
         posts = self.posterior(pts)
@@ -368,18 +397,18 @@ class ClusteredKDEPosterior(object):
 
         """
 
-        ndim = self.pts.shape[1]
-        npts = self.pts.shape[0]
+        ndim = self.kde_pts.shape[1]
+        npts = self.kde_pts.shape[0]
 
         nparams = self.k*(ndim + (ndim+1)*ndim/2) # We fit both the
                                                   # positions and the
                                                   # covariances of the
                                                   # kernels
 
-        pts = self.pts.copy()
+        pts = self.kde_pts.copy()
         pts[:,1] = np.arcsin(pts[:,1])
 
-        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.pts.shape[0])
+        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
 
     def _area_within_nside(self, levels, nside):
         thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int))
@@ -412,7 +441,7 @@ class ClusteredKDEPosterior(object):
         """Returns the sky area occupied by the given list of credible levels.
 
         """
-        post_levels = [self.greedy_posteriors[int(round(cl*self.pts.shape[0]))] for cl in cls]
+        post_levels = [self.greedy_posteriors[int(round(cl*self.ranking_pts.shape[0]))] for cl in cls]
 
         return self._area_within(post_levels)
 

@@ -32,7 +32,7 @@ def plot_assign(output, skypost):
     pp.clf()
     for i in range(k):
         sel = skypost.assign == i
-        pp.plot(skypost.pts[sel, 0], skypost.pts[sel, 1], ',')
+        pp.plot(skypost.kde_pts[sel, 0], skypost.kde_pts[sel, 1], ',')
 
     pp.xlabel(r'$\alpha$')
     pp.ylabel(r'$\sin \delta$')
