@@ -394,7 +394,12 @@ class ClusteredKDEPosterior(object):
         while True:
             areas = self._area_within_nside(levels, nside)
 
-            if np.all(areas > 0) and np.all(np.abs((areas-old_areas)/areas) < acc):
+            dareas = np.abs((areas-old_areas)/areas)
+
+            print 'computed sky areas at nside = ', nside, ' resolution'
+            print areas, dareas
+
+            if np.all(areas > 0) and np.all(dareas < acc):
                 break
             else:
                 old_areas = areas
