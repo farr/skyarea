@@ -1,0 +1,6 @@
+Sky Areas
+=========
+
+Project in Python for computing credible areas and p-values for MCMC
+samples on the sky using a clustered-kernel-density estimate (similar
+to X-Means).
