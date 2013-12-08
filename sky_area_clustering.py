@@ -110,7 +110,7 @@ class ClusteredKDEPosterior(object):
     
     """
 
-    def __init__(self, pts, ntrials=5, means=None, assign=None):
+    def __init__(self, pts, ntrials=5, means=None, assign=None, acc=1e-2):
         """Set up the posterior with the given RA-DEC points.
 
         :param pts: The sky points, in RA-DEC coordinates.
@@ -128,7 +128,12 @@ class ClusteredKDEPosterior(object):
           optimized using a BIC criterion on the model that ``pts``
           are drawn from the given clustered KDE.
 
+        :param acc: The (relative) accuracy with which to compute sky
+          areas.
+
         """
+        self._acc = acc
+
         pts = pts.copy()
         pts[:,1] = np.sin(pts[:,1])
         self._pts = pts
@@ -227,6 +232,17 @@ class ClusteredKDEPosterior(object):
 
         self._set_up_greedy_order()
         
+    @property
+    def acc(self):
+        """Integration accuracy for sky/searched areas.
+
+        """
+        return self._acc
+
+    @acc.setter
+    def acc(self, a):
+        self._acc = a
+
     @property
     def ntrials(self):
         """Returns the number of trials at each k over which the cluster
@@ -412,35 +428,38 @@ class ClusteredKDEPosterior(object):
 
     def _area_within_nside(self, levels, nside):
         thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int))
-        pixels = np.column_stack((phis, np.pi/2.0-thetas))
+        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
+
         pixel_posts = self.posterior(pixels)
 
-        return hp.nside2pixarea(nside)*np.array([np.count_nonzero(pixel_posts > lev) for lev in levels])
+        areas = [hp.nside2pixarea(nside)*np.sum(pixel_posts > l) for l in levels]
 
-    def _area_within(self, levels, acc = 1e-2):
-        old_areas = self._area_within_nside(levels, 1)
-        nside = 2
+        return np.array(areas)
+
+    def _area_within(self, levels):
+        levels = np.atleast_1d(levels)
+
+        nside = 1
+        old_areas = np.zeros(levels.shape[0])
         while True:
+            nside *= 2
             areas = self._area_within_nside(levels, nside)
 
-            dareas = np.abs((areas-old_areas)/areas)
+            error = np.abs((areas - old_areas)/areas)
 
-            print 'computed sky areas at nside = ', nside, ' resolution'
-            print areas, dareas
+            print 'Calculated sky area at nside = ', nside
 
-            if np.all(areas > 0) and np.all(dareas < acc):
-                break
+            if np.all(areas > 0) and np.all(error < self.acc):
+                return areas
             else:
                 old_areas = areas
-                nside *= 2
-
-        return areas
-        
 
     def sky_area(self, cls):
         """Returns the sky area occupied by the given list of credible levels.
 
         """
+        cls = np.atleast_1d(cls)
+
         post_levels = [self.greedy_posteriors[int(round(cl*self.ranking_pts.shape[0]))] for cl in cls]
 
         return self._area_within(post_levels)
