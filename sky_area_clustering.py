@@ -416,10 +416,8 @@ class ClusteredKDEPosterior(object):
         ndim = self.kde_pts.shape[1]
         npts = self.kde_pts.shape[0]
 
-        nparams = self.k*(ndim + (ndim+1)*ndim/2) # We fit both the
-                                                  # positions and the
-                                                  # covariances of the
-                                                  # kernels
+        nparams = self.k*ndim # We fit for the positions of k
+                              # centroids
 
         pts = self.kde_pts.copy()
         pts[:,1] = np.arcsin(pts[:,1])
