@@ -72,7 +72,6 @@ if __name__ == '__main__':
         names = inp.readline().split()
         data = np.loadtxt(inp, dtype=[(n,np.float) for n in names])
     pts = np.column_stack((data['ra'], data['dec']))
-    print pts.shape
 
     if args.maxpts is not None:
         pts = np.random.permutation(pts)[:args.maxpts, :]
