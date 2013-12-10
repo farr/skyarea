@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from argparse import ArgumentParser
+from optparse import OptionParser
 from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
@@ -50,23 +50,23 @@ def save_pvalue(output, skypost, ra, dec):
     np.savetxt(output, p)
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
+    parser = OptionParser()
 
-    parser.add_argument('--outdir', required=True, help='output directory')
-    parser.add_argument('--samples', required=True, help='posterior samples file')
+    parser.add_option('--outdir', help='output directory')
+    parser.add_option('--samples', help='posterior samples file')
 
-    parser.add_argument('--inj', help='injection XML')
-    parser.add_argument('--eventnum', default=0, type=int, help='event number')
+    parser.add_option('--inj', help='injection XML')
+    parser.add_option('--eventnum', default=0, type='int', help='event number')
 
-    parser.add_argument('--loadpost', help='filename for pickled posterior state')
+    parser.add_option('--loadpost', help='filename for pickled posterior state')
 
-    parser.add_argument('--maxpts', type=int, help='maximum number of posterior points to use')
+    parser.add_option('--maxpts', type='int', help='maximum number of posterior points to use')
 
-    parser.add_argument('--trials', type=int, default=10, help='maximum number of trials to build sky posterior')
+    parser.add_option('--trials', type='int', default=10, help='maximum number of trials to build sky posterior')
 
-    parser.add_argument('--noskyarea', action='store_true', help='turn off sky area computation')
+    parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
 
-    args = parser.parse_args()
+    (args, remaining) = parser.parse_args()
 
     data = np.genfromtxt(args.samples, names=True)
     pts = np.column_stack((data['ra'], data['dec']))
