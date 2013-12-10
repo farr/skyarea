@@ -416,7 +416,15 @@ class ClusteredKDEPosterior(object):
         ndim = self.kde_pts.shape[1]
         npts = self.kde_pts.shape[0]
 
-        nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2)
+        # The number of parameters is:
+        #
+        # * ndim for each centroid location
+        # 
+        # * (ndim+1)*ndim/2 Kernel covariances for each cluster
+        #
+        # * one weighting factor for the cluster (minus one for the
+        #   overall constraint that the weights must sum to one)
+        nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
 
         pts = self.kde_pts.copy()
         pts[:,1] = np.arcsin(pts[:,1])
