@@ -62,6 +62,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--maxpts', type=int, help='maximum number of posterior points to use')
 
+    parser.add_argument('--trials', type=int, default=10, help='maximum number of trials to build sky posterior')
+
     parser.add_argument('--noskyarea', action='store_true', help='turn off sky area computation')
 
     args = parser.parse_args()
@@ -73,7 +75,16 @@ if __name__ == '__main__':
         pts = np.random.permutation(pts)[:args.maxpts, :]
     
     if args.loadpost is None:
-        skypost = sac.ClusteredKDEPosterior(pts)
+        for i in range(args.trials):
+            try:
+                skypost = sac.ClusteredKDEPosterior(pts)
+                break
+            except:
+                skypost = None
+                continue
+        if skypost is None:
+            print 'Could not generate sky posterior'
+            exit(1)
     else:
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
