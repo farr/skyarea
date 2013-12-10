@@ -36,7 +36,7 @@ def km_centroids(pts, assign, k):
     mus = np.zeros((k, pts.shape[1]))
     for i in range(k):
         sel = assign==i
-        if np.count_nonzero(sel) > 0:
+        if np.sum(sel) > 0:
             mus[i,:] = np.mean(pts[sel, :], axis=0)
         else:
             mus[i,:] = pts[np.random.randint(pts.shape[0]), :]
@@ -352,12 +352,12 @@ class ClusteredKDEPosterior(object):
         self._weights = []
         for i in range(k):
             sel = (self.assign == i)
-            if np.count_nonzero(sel) == 0:
+            if np.sum(sel) == 0:
                 self._kdes.append(lambda x : 0.0)
                 self._weights.append(0.0)
             else:
                 self._kdes.append(gaussian_kde(self.kde_pts[sel,:].T))
-                self._weights.append(float(np.count_nonzero(sel))/float(self.kde_pts.shape[0]))
+                self._weights.append(float(np.sum(sel))/float(self.kde_pts.shape[0]))
         self._weights = np.array(self.weights)
 
     def _set_up_greedy_order(self):

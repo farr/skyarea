@@ -68,8 +68,11 @@ if __name__ == '__main__':
 
     (args, remaining) = parser.parse_args()
 
-    data = np.genfromtxt(args.samples, names=True)
+    with open(args.samples, 'r') as inp:
+        names = inp.readline().split()
+        data = np.loadtxt(inp, dtype=[(n,np.float) for n in names])
     pts = np.column_stack((data['ra'], data['dec']))
+    print pts.shape
 
     if args.maxpts is not None:
         pts = np.random.permutation(pts)[:args.maxpts, :]
