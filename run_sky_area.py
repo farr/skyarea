@@ -6,11 +6,14 @@ from glue.ligolw import lsctables
 from glue.ligolw import table
 from glue.ligolw import utils
 import healpy as hp
-import matplotlib.pyplot as pp
+import matplotlib as mpl
 import numpy as np
 import os
 import pickle
 import sky_area_clustering as sac
+
+mpl.use('Agg')
+import matplotlib.pyplot as pp
 
 def plot_skymap(output, skypost, pixresol=np.pi/180.0):
     nside = 1
