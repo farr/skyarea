@@ -42,21 +42,29 @@ def plot_assign(output, skypost):
 
     pp.savefig(output)
 
-def save_areas(output_areas, output_ps, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
-    if output_ps is None or sim_id is None or ra is None or dec is None:
+def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
+    if sim_id is None or ra is None or dec is None:
         levels = cls
         areas = skypost.sky_areas(cls)
-        np.savetxt(output_areas, np.column_stack((np.array(cls), areas[:-1])))
+
+        str_cls = ['{0:g}'.format(cl) for cl in cls]
+        str_cl_areas = ['{0:g}'.format(a) for a in areas]
+
+        with open(output, 'w') as out:
+            out.write('# ' + ' '.join(str_cls) + '\n')
+            out.write(' '.join(str_cl_areas) + '\n')
     else:
         p_value = skypost.p_values(np.array([[ra,dec]]))[0]
         levels = np.concatenate((cls, [p_value]))
 
         areas = skypost.sky_area(levels)
 
-        np.savetxt(output_areas, np.column_stack((np.array(cls), areas[:-1])))
-        with open(output_ps, 'w') as out:
-            out.write('# sim_id p searched_area\n')
-            out.write('{0:d} {1:g} {2:g}\n'.format(int(sim_id), p_value, areas[-1]))
+        str_cls = ['{0:g}'.format(cl) for cl in cls]
+        str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
+
+        with open(output, 'w') as out:
+            out.write('# sim_id p searched_area ' + ' '.join(str_cls) + '\n')
+            out.write('{0:d} {1:g} {2:g} '.format(int(sim_id), p_value, areas[-1]) + ' '.join(str_cl_areas) + '\n')
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -125,11 +133,9 @@ if __name__ == '__main__':
             inj = injs[args.eventnum]
 
             save_areas(os.path.join(args.outdir, 'areas.dat'), 
-                       os.path.join(args.outdir, 'p.dat'),
                        skypost, 
                        inj.simulation_id, inj.longitude, inj.latitude)
         else:
             save_areas(os.path.join(args.outdir, 'areas.dat'),
-                       None, 
                        skypost,
                        None, None, None)
