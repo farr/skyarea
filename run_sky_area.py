@@ -42,15 +42,21 @@ def plot_assign(output, skypost):
 
     pp.savefig(output)
 
-def save_areas(output, skypost, cls=[0.5, 0.75, 0.9]):
-    areas = skypost.sky_area(cls)
+def save_areas(output_areas, output_ps, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
+    if output_ps is None or sim_id is None or ra is None or dec is None:
+        levels = cls
+        areas = skypost.sky_areas(cls)
+        np.savetxt(output_areas, np.column_stack((np.array(cls), areas[:-1])))
+    else:
+        p_value = skypost.p_values(np.array([[ra,dec]]))[0]
+        levels = np.concatenate((cls, [p_value]))
 
-    np.savetxt(output, np.column_stack((np.array(cls), areas)))
+        areas = skypost.sky_area(levels)
 
-def save_pvalue(output, skypost, ra, dec):
-    p = skypost.p_values(np.array([[ra, dec]]))
-
-    np.savetxt(output, p)
+        np.savetxt(output_areas, np.column_stack((np.array(cls), areas[:-1])))
+        with open(output_ps, 'w') as out:
+            out.write('# sim_id p searched_area\n')
+            out.write('{0:d} {1:g} {2:g}\n'.format(int(sim_id), p_value, areas[-1]))
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -113,12 +119,17 @@ if __name__ == '__main__':
         pass
     else:
         print 'saving sky areas ...'
-        save_areas(os.path.join(args.outdir, 'areas.dat'), skypost)
+        if args.inj is not None:
+            injs = table.get_table(utils.load_filename(args.inj),
+                                   lsctables.SimInspiralTable.tableName)
+            inj = injs[args.eventnum]
 
-    if args.inj is not None:
-        injs = table.get_table(utils.load_filename(args.inj),
-                               lsctables.SimInspiralTable.tableName)
-        inj = injs[args.eventnum]
-
-        print 'saving injection p-value ...'
-        save_pvalue(os.path.join(args.outdir, 'p.dat'), skypost, inj.longitude, inj.latitude)
+            save_areas(os.path.join(args.outdir, 'areas.dat'), 
+                       os.path.join(args.outdir, 'p.dat'),
+                       skypost, 
+                       inj.simulation_id, inj.longitude, inj.latitude)
+        else:
+            save_areas(os.path.join(args.outdir, 'areas.dat'),
+                       None, 
+                       skypost,
+                       None, None, None)
