@@ -11,8 +11,6 @@ if __name__ == '__main__':
     cls = np.array([0.5, 0.75, 0.9])
     cls_header = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
 
-    rad2deg = 180.0/np.pi
-
     data = []
     dtype = np.dtype([('simulation_id', np.str, 250),
                       ('p_value', np.float),
@@ -48,7 +46,7 @@ if __name__ == '__main__':
     pp.savefig('2015-TaylorF2-MCMC-p-p.pdf')
 
     pp.clf()
-    pu.plot_cumulative_distribution(data['searched_area']*rad2deg*rad2deg, '-k')
+    pu.plot_cumulative_distribution(data['searched_area'], '-k')
     pp.xscale('log')
     pp.xlabel(r'Searched Area (deg$^2$)')
     pp.savefig('2015-TaylorF2-MCMC-searched-area.pdf')

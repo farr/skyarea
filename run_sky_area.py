@@ -53,6 +53,11 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
         levels = np.concatenate((cls, [p_value]))
         areas = skypost.sky_area(levels)
 
+    rad2deg = 180.0/np.pi
+
+    # Final areas in degrees
+    areas = areas*rad2deg*rad2deg
+
     str_cls = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
     str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
 
