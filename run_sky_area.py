@@ -46,7 +46,7 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
     if sim_id is None or ra is None or dec is None:
         p_value = 0.0
         levels = cls
-        areas = skypost.sky_areas(cls)
+        areas = skypost.sky_area(cls)
         areas = np.concatenate((areas, [0.0]))
     else:
         p_value = skypost.p_values(np.array([[ra,dec]]))[0]
@@ -63,7 +63,7 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
 if __name__ == '__main__':
     parser = OptionParser()
 
-    parser.add_option('--outdir', help='output directory')
+    parser.add_option('--outdir', help='output directory', default='.')
     parser.add_option('--samples', help='posterior samples file')
 
     parser.add_option('--inj', help='injection XML')
