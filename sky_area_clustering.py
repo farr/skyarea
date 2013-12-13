@@ -450,12 +450,16 @@ class ClusteredKDEPosterior(object):
             nside *= 2
             areas = self._area_within_nside(levels, nside)
 
-            error = np.abs((areas - old_areas)/areas)
+            extrap_areas = (4.0*areas - old_areas)/3.0
+
+            error = np.abs((areas - extrap_areas)/extrap_areas)
 
             print 'Calculated sky area at nside = ', nside
+            print 'Areas are ', extrap_areas
+            print
 
             if np.all(areas > 0) and np.all(error < self.acc):
-                return areas
+                return extrap_areas
             else:
                 old_areas = areas
 
