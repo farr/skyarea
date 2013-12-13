@@ -5,7 +5,7 @@ import numpy.linalg as nl
 from scipy.stats import gaussian_kde
 
 def km_assign(mus, cov, pts):
-    """Implements the assignment step in the k-means algorith.  Given a
+    """Implements the assignment step in the k-means algorithm.  Given a
     set of centers, ``mus``, a covariance matrix used to produce a
     metric on the space, ``cov``, and a set of points, ``pts`` (shape
     ``(npts, ndim)``), assigns each point to its nearest center,
