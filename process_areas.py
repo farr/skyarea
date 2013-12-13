@@ -14,8 +14,14 @@ if __name__ == '__main__':
     rad2deg = 180.0/np.pi
 
     data = []
+    dtype = np.dtype([('simulation_id', np.str, 250),
+                      ('p_value', np.float),
+                      ('searched_area', np.float),
+                      ('area50', np.float),
+                      ('area75', np.float),
+                      ('area90', np.float)])
     for file in glob.glob('*/areas.dat'):
-        data.append(np.recfromtxt(file, names=True))
+        data.append(np.loadtxt(file, dtype=dtype, skiprows=1))
     new_data = np.zeros(len(data), dtype=data[0].dtype)
     for i in range(len(data)):
         new_data[i] = data[i][()]

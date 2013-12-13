@@ -44,27 +44,21 @@ def plot_assign(output, skypost):
 
 def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
     if sim_id is None or ra is None or dec is None:
+        p_value = 0.0
         levels = cls
         areas = skypost.sky_areas(cls)
-
-        str_cls = ['{0:g}'.format(cl) for cl in cls]
-        str_cl_areas = ['{0:g}'.format(a) for a in areas]
-
-        with open(output, 'w') as out:
-            out.write('# ' + ' '.join(str_cls) + '\n')
-            out.write(' '.join(str_cl_areas) + '\n')
+        areas = np.concatenate((areas, [0.0]))
     else:
         p_value = skypost.p_values(np.array([[ra,dec]]))[0]
         levels = np.concatenate((cls, [p_value]))
-
         areas = skypost.sky_area(levels)
 
-        str_cls = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
-        str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
+    str_cls = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
+    str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
 
-        with open(output, 'w') as out:
-            out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(str_cls) + '\n')
-            out.write('{0:s}\t{1:g}\t{2:g}\t'.format(str(sim_id), p_value, areas[-1]) + '\t'.join(str_cl_areas) + '\n')
+    with open(output, 'w') as out:
+        out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(str_cls) + '\n')
+        out.write('{0:s}\t{1:g}\t{2:g}\t'.format(str(sim_id), p_value, areas[-1]) + '\t'.join(str_cl_areas) + '\n')
 
 if __name__ == '__main__':
     parser = OptionParser()
