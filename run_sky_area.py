@@ -59,12 +59,12 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
 
         areas = skypost.sky_area(levels)
 
-        str_cls = ['{0:g}'.format(cl) for cl in cls]
+        str_cls = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
         str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
 
         with open(output, 'w') as out:
-            out.write('# sim_id p searched_area ' + ' '.join(str_cls) + '\n')
-            out.write('{0:d} {1:g} {2:g} '.format(int(sim_id), p_value, areas[-1]) + ' '.join(str_cl_areas) + '\n')
+            out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(str_cls) + '\n')
+            out.write('{0:s}\t{1:g}\t{2:g}\t'.format(str(sim_id), p_value, areas[-1]) + '\t'.join(str_cl_areas) + '\n')
 
 if __name__ == '__main__':
     parser = OptionParser()
