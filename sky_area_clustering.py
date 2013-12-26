@@ -431,15 +431,31 @@ class ClusteredKDEPosterior(object):
 
         return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
 
+    def _split_range(self, n, nmax=100000):
+        if n < nmax:
+            return [(0,n)]
+        else:
+            lows = range(0, n, nmax)
+            highs = lows[1:]
+            highs.append(n)
+
+            return zip(lows, highs)
+
     def _area_within_nside(self, levels, nside):
-        thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int))
-        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
+        npix = hp.nside2npix(nside)
+        pixarea = hp.nside2pixarea(nside)
+        
+        areas = 0.0
+        for low, high in self._split_range(npix):
+            thetas, phis = hp.pix2ang(nside, np.arange(low, high, dtype=np.int))
+            pixels = np.column_stack((phis, np.pi/2.0 - thetas))
 
-        pixel_posts = self.posterior(pixels)
+            pixel_posts = self.posterior(pixels)
 
-        areas = [hp.nside2pixarea(nside)*np.sum(pixel_posts > l) for l in levels]
+            sub_areas = np.array([pixarea*np.sum(pixel_posts > l) for l in levels])
+            areas = areas + sub_areas
 
-        return np.array(areas)
+        return areas
 
     def _area_within(self, levels):
         levels = np.atleast_1d(levels)
