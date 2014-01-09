@@ -5,6 +5,7 @@ from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
 from glue.ligolw import utils
+from lalinference.bayestar import fits
 import healpy as hp
 import matplotlib as mpl
 import numpy as np
@@ -82,6 +83,10 @@ if __name__ == '__main__':
 
     parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
 
+    parser.add_option('--nside', type=int, default=512, help='HEALPix resolution [default: %default]')
+
+    parser.add_option('--objid', help='event ID to store in FITS header')
+
     (args, remaining) = parser.parse_args()
 
     with open(args.samples, 'r') as inp:
@@ -138,3 +143,6 @@ if __name__ == '__main__':
             save_areas(os.path.join(args.outdir, 'areas.dat'),
                        skypost,
                        None, None, None)
+    fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
+        skypost.as_healpix(args.nside), creator=parser.get_prog_name(),
+        objid=args.objid)
