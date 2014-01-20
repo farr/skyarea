@@ -350,15 +350,24 @@ class ClusteredKDEPosterior(object):
 
         self._kdes = []
         self._weights = []
+        ndim = self.kde_pts.shape[1]
         for i in range(k):
             sel = (self.assign == i)
-            if np.sum(sel) == 0:
+            if np.sum(sel) <= ndim:
+                # If we have <= ndim points in a cluster, then the
+                # covariance is singular.  In this case, ignore these
+                # points.  If there are a significant number of points
+                # that land in such small clusters, then hopefully
+                # this clustering will be rejected by the BIC.
                 self._kdes.append(lambda x : 0.0)
                 self._weights.append(0.0)
             else:
                 self._kdes.append(gaussian_kde(self.kde_pts[sel,:].T))
-                self._weights.append(float(np.sum(sel))/float(self.kde_pts.shape[0]))
+                self._weights.append(float(np.sum(sel)))
         self._weights = np.array(self.weights)
+
+        # Normalize the weights
+        self._weights = self._weights / np.sum(self._weights)
 
     def _set_up_greedy_order(self):
         pts = self.ranking_pts.copy()
