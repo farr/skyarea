@@ -383,6 +383,7 @@ class ClusteredKDEPosterior(object):
 
         """
         pts = pts.copy()
+        pts = np.atleast_2d(pts)
         pts[:,1] = np.sin(pts[:,1])
         
         post = np.zeros(pts.shape[0])
