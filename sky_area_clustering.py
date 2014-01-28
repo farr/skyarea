@@ -451,6 +451,13 @@ class ClusteredKDEPosterior(object):
 
             return zip(lows, highs)
 
+    def as_healpix(self, nside):
+        npix = hp.nside2npix(nside)
+        thetas, phis = hp.pix2ang(nside, np.arange(npix))
+        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
+        pixel_posts = self.posterior(pixels)
+        return pixel_posts / np.sum(pixel_posts)
+
     def _area_within_nside(self, levels, nside):
         npix = hp.nside2npix(nside)
         pixarea = hp.nside2pixarea(nside)
