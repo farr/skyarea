@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Sky Area’s documentation! &mdash; Sky Area 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Sky Area 0.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">Sky Area 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-sky-area-s-documentation">
+<h1>Welcome to Sky Area&#8217;s documentation!<a class="headerlink" href="#welcome-to-sky-area-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sky_area.sky_area_clustering">
+<span id="the-sky-area-sky-area-clustering-module"></span><h2>The <a class="reference internal" href="#module-sky_area.sky_area_clustering" title="sky_area.sky_area_clustering"><tt class="xref py py-mod docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt></a> Module<a class="headerlink" href="#module-sky_area.sky_area_clustering" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior">
+<em class="property">class </em><tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">ClusteredKDEPosterior</tt><big>(</big><em>pts</em>, <em>ntrials=5</em>, <em>means=None</em>, <em>assign=None</em>, <em>acc=0.01</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Represents a kernel-density estimate of a sky-position PDF that has
+been decomposed into clusters, using a different kernel for each
+cluster.</p>
+<p>The estimated PDF is</p>
+<div class="math">
+\[p\left( \vec{\theta} \right) = \sum_{i = 0}^{k-1} \frac{N_i}{N} \sum_{\vec{x} \in C_i} N\left[\vec{x}, \Sigma_i\right]\left( \vec{\theta} \right)\]</div>
+<p>where <span class="math">\(C_i\)</span> is the set of points belonging to cluster
+<span class="math">\(i\)</span>, <span class="math">\(N_i\)</span> is the number of points in this cluster,
+<span class="math">\(\Sigma_i\)</span> is the optimally-converging KDE covariance
+associated to cluster <span class="math">\(i\)</span>.</p>
+<p>The number of clusters, <span class="math">\(k\)</span> is chosen to maximize the <a class="reference external" href="http://en.wikipedia.org/wiki/Bayesian_information_criterion">BIC</a>
+for the given set of points being drawn from the clustered KDE.
+The points are assigned to clusters using the k-means algorithm,
+with a decorrelated metric.  The overall clustering behavior is
+similar to the well-known <a class="reference external" href="http://www.cs.cmu.edu/~dpelleg/download/xmeans.pdf">X-Means</a> algorithm.</p>
+<p>In order to produce an unbiased estimate of credible areas, the
+algorithm follows a two-step process.  The set of input points is
+divided into two independent sets.  The first of these sets is
+used to establish a clustered KDE as described above; then the
+second set of points is ranked under this clustered KDE to
+establish a mapping from KDE contours to credible levels.  The
+different point sets are accessible as the <tt class="docutils literal"><span class="pre">self.kde_pts</span></tt> and
+<tt class="docutils literal"><span class="pre">self.ranking_pts</span></tt> arrays in the object.</p>
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.acc">
+<tt class="descname">acc</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.acc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.acc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integration accuracy for sky/searched areas.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix">
+<tt class="descname">as_healpix</tt><big>(</big><em>nside</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.assign">
+<tt class="descname">assign</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.assign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the cluster assignment number for each point.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_order">
+<tt class="descname">greedy_order</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.greedy_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the ordering of <tt class="docutils literal"><span class="pre">self.ranking_pts</span></tt> from highest to lowest
+posterior values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_posteriors">
+<tt class="descname">greedy_posteriors</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.greedy_posteriors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_posteriors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the posterior values at <tt class="docutils literal"><span class="pre">self.ranking_pts</span></tt> in greedy order.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.k">
+<tt class="descname">k</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the optimized number of clusters.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.kde_pts">
+<tt class="descname">kde_pts</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.kde_pts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.kde_pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subset of points used to construct the KDE.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.kdes">
+<tt class="descname">kdes</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.kdes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.kdes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the scipy KDE object associated with each cluster.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.means">
+<tt class="descname">means</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.means"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the cluster centroids.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.ntrials">
+<tt class="descname">ntrials</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.ntrials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.ntrials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of trials at each k over which the cluster
+assignments have been optimized.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.p_values">
+<tt class="descname">p_values</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.p_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.p_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the posterior greedy p-values (quantile in the posterior
+distribution) for the given points.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.posterior">
+<tt class="descname">posterior</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the clustered KDE estimate of the sky density per steradian
+at the given points in RA-DEC.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.pts">
+<tt class="descname">pts</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.pts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points in <span class="math">\((\alpha, \sin(\delta))\)</span> space.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.ranking_pts">
+<tt class="descname">ranking_pts</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.ranking_pts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.ranking_pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the set of points used that are ranked under the KDE to
+establish credible levels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.searched_area">
+<tt class="descname">searched_area</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.searched_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.searched_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sky area that must be searched using a greedy algorithm
+before encountering the given points in the sky.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.sky_area">
+<tt class="descname">sky_area</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.sky_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.sky_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sky area occupied by the given list of credible levels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.weights">
+<tt class="descname">weights</tt><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the weight assigned to each cluster&#8217;s KDE in the final
+posterior.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.sky_area_clustering.k_means">
+<tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">k_means</tt><big>(</big><em>pts</em>, <em>k</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#k_means"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.k_means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements k-means clustering on the set of points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pts</strong> &#8211; Array of shape <tt class="docutils literal"><span class="pre">(npts,</span> <span class="pre">ndim)</span></tt> giving the points on
+which k-means is to operate.</li>
+<li><strong>k</strong> &#8211; Positive integer giving the number of regions.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">(centroids,</span> <span class="pre">assign)</span></tt>, where <tt class="docutils literal"><span class="pre">centroids</span></tt> is an <tt class="docutils literal"><span class="pre">(k,</span>
+<span class="pre">ndim)</span></tt> array giving the centroid of each region, and <tt class="docutils literal"><span class="pre">assign</span></tt>
+is a <tt class="docutils literal"><span class="pre">(npts,)</span></tt> array of integers between 0 (inclusive) and k
+(exclusive) indicating the assignment of each point to a region.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.sky_area_clustering.km_assign">
+<tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">km_assign</tt><big>(</big><em>mus</em>, <em>cov</em>, <em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#km_assign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.km_assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the assignment step in the k-means algorithm.  Given a
+set of centers, <tt class="docutils literal"><span class="pre">mus</span></tt>, a covariance matrix used to produce a
+metric on the space, <tt class="docutils literal"><span class="pre">cov</span></tt>, and a set of points, <tt class="docutils literal"><span class="pre">pts</span></tt> (shape
+<tt class="docutils literal"><span class="pre">(npts,</span> <span class="pre">ndim)</span></tt>), assigns each point to its nearest center,
+returning an array of indices of shape <tt class="docutils literal"><span class="pre">(npts,)</span></tt> giving the
+assignments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.sky_area_clustering.km_centroids">
+<tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">km_centroids</tt><big>(</big><em>pts</em>, <em>assign</em>, <em>k</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#km_centroids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.km_centroids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the centroid-update step of the k-means algorithm.
+Given a set of points, <tt class="docutils literal"><span class="pre">pts</span></tt>, of shape <tt class="docutils literal"><span class="pre">(npts,</span> <span class="pre">ndim)</span></tt>, and an
+assignment of each point to a region, <tt class="docutils literal"><span class="pre">assign</span></tt>, and the number
+of means, <tt class="docutils literal"><span class="pre">k</span></tt>, returns an array of shape <tt class="docutils literal"><span class="pre">(k,</span> <span class="pre">ndim)</span></tt> giving
+the centroid of each region.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Sky Area&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#module-sky_area.sky_area_clustering">The <tt class="docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt> Module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">Sky Area 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Will M. Farr.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
