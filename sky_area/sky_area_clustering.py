@@ -156,77 +156,74 @@ class ClusteredKDEPosterior(object):
             mid_means = self.means
             mid_k = 2
 
-            if low_bic > mid_bic: # Only need one subdivision
-                self._set_up_kmeans(1)
-            else:
-                high_bic = self._set_up_optimal_kmeans(4, ntrials)
-                high_assign = self.assign
-                high_means = self.means
+            high_bic = self._set_up_optimal_kmeans(4, ntrials)
+            high_assign = self.assign
+            high_means = self.means
 
-                low_k, mid_k, high_k = 1, 2, 4
-
-                while high_bic > mid_bic:
-                    print 'extending ks: ', (low_k, mid_k, high_k)
-                    print 'with bics: ', (low_bic, mid_bic, high_bic)
-
-                    low_k, mid_k = mid_k, high_k
-                    low_bic, mid_bic = mid_bic, high_bic
-                    low_means, mid_means = mid_means, high_means
-                    low_assign, mid_assign = mid_assign, high_assign
-
-                    high_k = 2*mid_k
-                    while True:
-                        try:
-                            high_bic = self._set_up_optimal_kmeans(high_k, ntrials)
-                            high_means = self.means
-                            high_assign = self.assign
-                        except:
-                            high_k = mid_k + (high_k - mid_k)/2
-                            if high_k >= mid_k + 1:
-                                continue
-                            else:
-                                raise
-                        break
-
-                while high_k - low_k > 2:
-                    print 'shrinking ks: ', (low_k, mid_k, high_k)
-                    print 'with bics: ', (low_bic, mid_bic, high_bic)
-
-                    if high_k - mid_k > mid_k - low_k:
-                        k = mid_k + (high_k - mid_k)/2
-                        bic = self._set_up_optimal_kmeans(k, ntrials)
-                        means = self.means
-                        assign = self.assign
-
-                        if bic > mid_bic:
-                            low_k, mid_k = mid_k, k
-                            low_bic, mid_bic = mid_bic, bic
-                            low_means, mid_means = mid_means, means
-                            low_assign, mid_assign = mid_assign, assign
-                        else:
-                            high_k = k
-                            high_bic = bic
-                            high_means = means
-                            high_assign = assign
-                    else:
-                        k = low_k + (mid_k - low_k)/2
-                        bic = self._set_up_optimal_kmeans(k, ntrials)
-                        means = self.means
-                        assign = self.assign
-
-                        if bic > mid_bic:
-                            mid_k, high_k = k, mid_k
-                            mid_bic, high_bic = bic, mid_bic
-                            mid_means, high_means = means, mid_means
-                            mid_assign, high_assign = assign, mid_assign
-                        else:
-                            low_k = k
-                            low_bic = bic
-                            low_means = means
-                            low_assign = assign
+            low_k, mid_k, high_k = 1, 2, 4
             
-                print 'Found best k, BIC: ', mid_k, mid_bic
-                self._set_up_kmeans(mid_k, mid_means, mid_assign)
+            while high_bic > mid_bic:
+                print 'extending ks: ', (low_k, mid_k, high_k)
+                print 'with bics: ', (low_bic, mid_bic, high_bic)
+
+                low_k, mid_k = mid_k, high_k
+                low_bic, mid_bic = mid_bic, high_bic
+                low_means, mid_means = mid_means, high_means
+                low_assign, mid_assign = mid_assign, high_assign
+
+                high_k = 2*mid_k
+                while True:
+                    try:
+                        high_bic = self._set_up_optimal_kmeans(high_k, ntrials)
+                        high_means = self.means
+                        high_assign = self.assign
+                    except:
+                        high_k = mid_k + (high_k - mid_k)/2
+                        if high_k >= mid_k + 1:
+                            continue
+                        else:
+                            raise
+                    break
+
+            while high_k - low_k > 2:
+                print 'shrinking ks: ', (low_k, mid_k, high_k)
+                print 'with bics: ', (low_bic, mid_bic, high_bic)
+
+                if high_k - mid_k > mid_k - low_k:
+                    k = mid_k + (high_k - mid_k)/2
+                    bic = self._set_up_optimal_kmeans(k, ntrials)
+                    means = self.means
+                    assign = self.assign
+
+                    if bic > mid_bic:
+                        low_k, mid_k = mid_k, k
+                        low_bic, mid_bic = mid_bic, bic
+                        low_means, mid_means = mid_means, means
+                        low_assign, mid_assign = mid_assign, assign
+                    else:
+                        high_k = k
+                        high_bic = bic
+                        high_means = means
+                        high_assign = assign
+                else:
+                    k = low_k + (mid_k - low_k)/2
+                    bic = self._set_up_optimal_kmeans(k, ntrials)
+                    means = self.means
+                    assign = self.assign
+
+                    if bic > mid_bic:
+                        mid_k, high_k = k, mid_k
+                        mid_bic, high_bic = bic, mid_bic
+                        mid_means, high_means = means, mid_means
+                        mid_assign, high_assign = assign, mid_assign
+                    else:
+                        low_k = k
+                        low_bic = bic
+                        low_means = means
+                        low_assign = assign
+            
+            print 'Found best k, BIC: ', mid_k, mid_bic
+            self._set_up_kmeans(mid_k, mid_means, mid_assign)
         else:
             self._set_up_kmeans(means.shape[0], means, assign)
 
