@@ -471,7 +471,7 @@ class ClusteredKDEPosterior(object):
 
         return areas
 
-    def _area_within(self, levels):
+    def _area_within(self, levels, nside_max=512):
         levels = np.atleast_1d(levels)
 
         nside = 1
@@ -489,6 +489,9 @@ class ClusteredKDEPosterior(object):
             print
 
             if np.all(areas > 0) and np.all(error < self.acc):
+                return extrap_areas
+            elif nside >= nside_max:
+                print 'Ending sky area calculation at nside = ', nside
                 return extrap_areas
             else:
                 old_areas = areas
