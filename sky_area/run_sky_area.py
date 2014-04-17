@@ -143,4 +143,4 @@ if __name__ == '__main__':
                        None, None, None)
     fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
         skypost.as_healpix(args.nside), creator=parser.get_prog_name(),
-        objid=args.objid)
+        objid=args.objid, gps_time=data['time'].mean())
