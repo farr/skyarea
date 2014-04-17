@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 from optparse import OptionParser
 from glue.ligolw import ligolw
@@ -60,11 +61,14 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
     areas = areas*rad2deg*rad2deg
 
     str_cls = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
-    str_cl_areas = ['{0:g}'.format(a) for a in areas[:-1]]
 
     with open(output, 'w') as out:
-        out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(str_cls) + '\n')
-        out.write('{0:s}\t{1:g}\t{2:g}\t'.format(str(sim_id), p_value, areas[-1]) + '\t'.join(str_cl_areas) + '\n')
+        print(
+            'simulation_id', 'p_value', 'searched_area', *str_cls,
+            sep='\t', file=out)
+        print(
+            str(sim_id), p_value, areas[-1], *areas[:-1],
+            sep='\t', file=out)
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -89,9 +93,7 @@ if __name__ == '__main__':
 
     (args, remaining) = parser.parse_args()
 
-    with open(args.samples, 'r') as inp:
-        names = inp.readline().split()
-        data = np.loadtxt(inp, dtype=[(n,np.float) for n in names])
+    data = np.recfromtxt(args.samples, names=True)
     pts = np.column_stack((data['ra'], data['dec']))
 
     if args.maxpts is not None:
@@ -106,7 +108,7 @@ if __name__ == '__main__':
                 skypost = None
                 continue
         if skypost is None:
-            print 'Could not generate sky posterior'
+            print('Could not generate sky posterior')
             exit(1)
     else:
         with open(args.loadpost, 'r') as inp:
@@ -117,20 +119,20 @@ if __name__ == '__main__':
     except:
         pass
 
-    print 'pickling ...'
+    print('pickling ...')
     with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
         pickle.dump(skypost, out)
 
-    print 'plotting skymap ...' 
+    print('plotting skymap ...')
     plot_skymap(os.path.join(args.outdir, 'skymap.pdf'), skypost)
     
-    print 'plotting cluster assignments ...'
+    print('plotting cluster assignments ...')
     plot_assign(os.path.join(args.outdir, 'assign.pdf'), skypost)
     
     if args.noskyarea:
         pass
     else:
-        print 'saving sky areas ...'
+        print('saving sky areas ...')
         if args.inj is not None:
             injs = table.get_table(utils.load_filename(args.inj),
                                    lsctables.SimInspiralTable.tableName)
@@ -145,4 +147,4 @@ if __name__ == '__main__':
                        None, None, None)
     fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
         skypost.as_healpix(args.nside), creator=parser.get_prog_name(),
-        objid=args.objid)
+        objid=args.objid, gps_time=data['time'].mean())
