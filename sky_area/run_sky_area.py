@@ -89,9 +89,7 @@ if __name__ == '__main__':
 
     (args, remaining) = parser.parse_args()
 
-    with open(args.samples, 'r') as inp:
-        names = inp.readline().split()
-        data = np.loadtxt(inp, dtype=[(n,np.float) for n in names])
+    data = np.recfromtxt(args.samples, names=True)
     pts = np.column_stack((data['ra'], data['dec']))
 
     if args.maxpts is not None:
