@@ -91,7 +91,12 @@ if __name__ == '__main__':
 
     parser.add_option('--objid', help='event ID to store in FITS header')
 
+    parser.add_option('--seed', type=int, default=None, help='use specified random seed')
+
     (args, remaining) = parser.parse_args()
+
+    if args.seed is not None:
+        np.random.seed(args.seed)
 
     data = np.recfromtxt(args.samples, names=True)
     pts = np.column_stack((data['ra'], data['dec']))
