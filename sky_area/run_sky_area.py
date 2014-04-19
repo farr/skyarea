@@ -77,13 +77,13 @@ if __name__ == '__main__':
     parser.add_option('--samples', help='posterior samples file')
 
     parser.add_option('--inj', help='injection XML')
-    parser.add_option('--eventnum', default=0, type='int', help='event number')
+    parser.add_option('--eventnum', default=0, type='int', help='event number [default: %default]')
 
     parser.add_option('--loadpost', help='filename for pickled posterior state')
 
     parser.add_option('--maxpts', type='int', help='maximum number of posterior points to use')
 
-    parser.add_option('--trials', type='int', default=10, help='maximum number of trials to build sky posterior')
+    parser.add_option('--trials', type='int', default=10, help='maximum number of trials to build sky posterior [default: %default]')
 
     parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
 
