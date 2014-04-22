@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     parser.add_option('--maxpts', type='int', help='maximum number of posterior points to use')
 
-    parser.add_option('--trials', type='int', default=10, help='maximum number of trials to build sky posterior [default: %default]')
+    parser.add_option('--trials', type='int', default=50, help='maximum number of trials to build sky posterior [default: %default]')
 
     parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
 
