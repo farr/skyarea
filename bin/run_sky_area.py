@@ -12,7 +12,7 @@ import matplotlib as mpl
 import numpy as np
 import os
 import pickle
-import sky_area_clustering as sac
+import sky_area.sky_area_clustering as sac
 
 mpl.use('Agg')
 import matplotlib.pyplot as pp
