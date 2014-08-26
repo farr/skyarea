@@ -17,18 +17,18 @@ import sky_area.sky_area_clustering as sac
 mpl.use('Agg')
 import matplotlib.pyplot as pp
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0):
+def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
 
-    thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int))
+    thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int), nest=nest)
     pixels = np.column_stack((phis, np.pi/2.0 - thetas))
 
     pix_post = skypost.posterior(pixels)
 
     pp.clf()
-    hp.mollview(pix_post)
+    hp.mollview(pix_post, nest=nest)
     pp.savefig(output)
 
 def plot_assign(output, skypost):
@@ -150,6 +150,11 @@ if __name__ == '__main__':
             save_areas(os.path.join(args.outdir, 'areas.dat'),
                        skypost,
                        None, None, None)
+
+    fits_nest = True
+
     fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
-        skypost.as_healpix(args.nside), creator=parser.get_prog_name(),
-        objid=args.objid, gps_time=data['time'].mean())
+                       skypost.as_healpix(args.nside, nest=fits_nest), 
+                       creator=parser.get_prog_name(),
+                       objid=args.objid, gps_time=data['time'].mean(),
+                       nest=fits_nest)

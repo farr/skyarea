@@ -448,9 +448,14 @@ class ClusteredKDEPosterior(object):
 
             return zip(lows, highs)
 
-    def as_healpix(self, nside):
+    def as_healpix(self, nside, nest=True):
+        """Returns a healpix map of the posterior density, by default in
+        nested order.
+
+        """
+
         npix = hp.nside2npix(nside)
-        thetas, phis = hp.pix2ang(nside, np.arange(npix))
+        thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
         pixels = np.column_stack((phis, np.pi/2.0 - thetas))
         pixel_posts = self.posterior(pixels)
         return pixel_posts / np.sum(pixel_posts)
