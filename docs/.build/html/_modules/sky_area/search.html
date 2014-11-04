@@ -90,6 +90,9 @@
 
     <span class="c"># Create the map in ring coordinates first.</span>
     <span class="n">hmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">ras</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">nside</span><span class="p">))</span>
+
+    <span class="n">hmap</span> <span class="o">=</span> <span class="n">hmap</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">thetas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span>
+
     <span class="n">chmap</span> <span class="o">=</span> <span class="n">hps</span><span class="o">.</span><span class="n">smoothing</span><span class="p">(</span><span class="n">hmap</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="n">beam</span><span class="p">,</span> <span class="n">pol</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">nest</span><span class="p">:</span>

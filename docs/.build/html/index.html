@@ -47,6 +47,38 @@
             
   <div class="section" id="welcome-to-sky-area-s-documentation">
 <h1>Welcome to Sky Area&#8217;s documentation!<a class="headerlink" href="#welcome-to-sky-area-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">sky_area</span></tt> package provides utilities to turn samples from
+probability distributions on the sky (i.e. samples of RA and DEC) into
+sky maps, computing credible areas of the distribution, calculating
+the minimum searched area following a greedy algorithm to find an
+object, and producing <a class="reference external" href="http://healpix.jpl.nasa.gov">Healpix-pixellated</a> maps that can be used to optimise a
+search with a known telescope beam.</p>
+<p>There are also executable codes, that rely on the <a class="reference external" href="https://www.lsc-group.phys.uwm.edu/daswg/projects/lalsuite.html">LALInference</a>
+libraries from the LIGO Scientific Collaboration, for producing
+various skymaps and credible regions in FITS format.</p>
+<p>The algorithm used to turn discrete samples into a probability
+distribution on the sky is an improved version of the clustering
+algorithm <a class="reference external" href="http://www.cs.cmu.edu/~dpelleg/kmeans.html">X-means</a> that
+provides more flexibility in the shape of each cluster.  The code
+works hard to ensure that the quoted credible areas are <a class="reference external" href="https://dcc.ligo.org/LIGO-P1400054">unbiased</a>, so the X% credible area will,
+on average, enclose X% of the probability mass.</p>
+<p>You may want to:</p>
+<ul class="simple">
+<li>Compute the credible areas or the area searched under a greedy
+algorithm for a distribution on the sky represented by discrete
+samples.  Use the
+<a class="reference internal" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior" title="sky_area.sky_area_clustering.ClusteredKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">sky_area.sky_area_clustering.ClusteredKDEPosterior</span></tt></a> class.</li>
+<li>Automatically produce the above from the output of a LALInference
+run.  Use the executable program <tt class="docutils literal"><span class="pre">run_sky_area.py</span></tt></li>
+<li>Produce a Healpix map that ranks pixels on the sky for a search
+following the posterior denisty with a telescope having a known beam
+size.  Use the <a class="reference internal" href="#sky_area.search.search_map" title="sky_area.search.search_map"><tt class="xref py py-func docutils literal"><span class="pre">sky_area.search.search_map()</span></tt></a> function or, from
+the command-line, the <tt class="docutils literal"><span class="pre">make_search_map.py</span></tt> executable.</li>
+<li>Collate a bunch of sky maps, searched areas, and credible areas to
+produce a cumulative distribution of searched/credible areas from a
+combined data set of posteriors, as in <a class="reference external" href="http://arxiv.org/abs/1404.5623">Singer, et al</a>.  Use the <tt class="docutils literal"><span class="pre">process_areas.py</span></tt>
+executable.</li>
+</ul>
 <div class="section" id="module-sky_area.sky_area_clustering">
 <span id="the-sky-area-sky-area-clustering-module"></span><h2>The <a class="reference internal" href="#module-sky_area.sky_area_clustering" title="sky_area.sky_area_clustering"><tt class="xref py py-mod docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt></a> Module<a class="headerlink" href="#module-sky_area.sky_area_clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
