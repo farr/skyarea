@@ -14,6 +14,14 @@ The :mod:`sky_area.sky_area_clustering` Module
    :undoc-members:
    :show-inheritance:
 
+The :mod:`sky_area.search` Module
+---------------------------------
+
+.. automodule:: sky_area.search
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Indices and tables
 ==================
 

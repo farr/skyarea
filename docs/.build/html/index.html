@@ -84,8 +84,10 @@ different point sets are accessible as the <tt class="docutils literal"><span cl
 
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix">
-<tt class="descname">as_healpix</tt><big>(</big><em>nside</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a healpix map of the posterior density, by default in
+nested order.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="sky_area.sky_area_clustering.ClusteredKDEPosterior.assign">
@@ -233,6 +235,38 @@ the centroid of each region.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-sky_area.search">
+<span id="the-sky-area-search-module"></span><h2>The <a class="reference internal" href="#module-sky_area.search" title="sky_area.search"><tt class="xref py py-mod docutils literal"><span class="pre">sky_area.search</span></tt></a> Module<a class="headerlink" href="#module-sky_area.search" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for computing useful quantities for searches on the sky.</p>
+<dl class="function">
+<dt id="sky_area.search.search_map">
+<tt class="descclassname">sky_area.search.</tt><tt class="descname">search_map</tt><big>(</big><em>ras</em>, <em>decs</em>, <em>beam</em>, <em>nest=True</em>, <em>pix_per_beam=10</em><big>)</big><a class="reference internal" href="_modules/sky_area/search.html#search_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.search.search_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a healpix map optimised for searching on the sky.  It
+represents the Gaussian-beam convolved posterior.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ras</strong> &#8211; RA posterior samples.</li>
+<li><strong>decs</strong> &#8211; Corresponding DEC samples.</li>
+<li><strong>beam</strong> &#8211; The beam FWHM in radians.</li>
+<li><strong>nest</strong> &#8211; Whether to output the map in nested (default) or ring
+pixel ordering.</li>
+<li><strong>pix_per_beam</strong> &#8211; The number of pixels in the output map per
+beam (default 10).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An array representing the (unnormalised) posterior
+convolved with a Gaussian beam of the given size.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -253,6 +287,7 @@ the centroid of each region.</p>
   <ul>
 <li><a class="reference internal" href="#">Welcome to Sky Area&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#module-sky_area.sky_area_clustering">The <tt class="docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-sky_area.search">The <tt class="docutils literal"><span class="pre">sky_area.search</span></tt> Module</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -294,7 +329,7 @@ the centroid of each region.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2014, Will M. Farr.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>

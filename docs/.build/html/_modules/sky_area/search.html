@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sky_area.search &mdash; Sky Area 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Sky Area 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Sky Area 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sky_area.search</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Utilities for computing useful quantities for searches on the sky.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
+<span class="kn">import</span> <span class="nn">healpy.sphtfunc</span> <span class="kn">as</span> <span class="nn">hps</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="k">def</span> <span class="nf">_find_nside</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="n">pix_per_beam</span><span class="p">):</span>
+    <span class="n">nside</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">while</span> <span class="n">beam</span><span class="o">/</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2resol</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">pix_per_beam</span><span class="p">:</span>
+        <span class="n">nside</span> <span class="o">*=</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">nside</span>
+
+<div class="viewcode-block" id="search_map"><a class="viewcode-back" href="../../index.html#sky_area.search.search_map">[docs]</a><span class="k">def</span> <span class="nf">search_map</span><span class="p">(</span><span class="n">ras</span><span class="p">,</span> <span class="n">decs</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">pix_per_beam</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a healpix map optimised for searching on the sky.  It</span>
+<span class="sd">    represents the Gaussian-beam convolved posterior.</span>
+
+<span class="sd">    :param ras: RA posterior samples.</span>
+
+<span class="sd">    :param decs: Corresponding DEC samples.</span>
+
+<span class="sd">    :param beam: The beam FWHM in radians.</span>
+
+<span class="sd">    :param nest: Whether to output the map in nested (default) or ring</span>
+<span class="sd">      pixel ordering.</span>
+
+<span class="sd">    :param pix_per_beam: The number of pixels in the output map per</span>
+<span class="sd">      beam (default 10).</span>
+
+<span class="sd">    :return: An array representing the (unnormalised) posterior</span>
+<span class="sd">      convolved with a Gaussian beam of the given size.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nside</span> <span class="o">=</span> <span class="n">_find_nside</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="n">pix_per_beam</span><span class="p">)</span>
+
+    <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span> <span class="o">-</span> <span class="n">decs</span>
+
+    <span class="c"># Create the map in ring coordinates first.</span>
+    <span class="n">hmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">ras</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">nside</span><span class="p">))</span>
+    <span class="n">chmap</span> <span class="o">=</span> <span class="n">hps</span><span class="o">.</span><span class="n">smoothing</span><span class="p">(</span><span class="n">hmap</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="n">beam</span><span class="p">,</span> <span class="n">pol</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nest</span><span class="p">:</span>
+        <span class="n">chmap</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">chmap</span><span class="p">,</span> <span class="n">r2n</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chmap</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Sky Area 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Will M. Farr.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

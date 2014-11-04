@@ -206,77 +206,74 @@
             <span class="n">mid_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
             <span class="n">mid_k</span> <span class="o">=</span> <span class="mi">2</span>
 
-            <span class="k">if</span> <span class="n">low_bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span> <span class="c"># Only need one subdivision</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">high_bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
-                <span class="n">high_assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
-                <span class="n">high_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
+            <span class="n">high_bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
+            <span class="n">high_assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
+            <span class="n">high_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
 
-                <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span>
-
-                <span class="k">while</span> <span class="n">high_bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
-                    <span class="k">print</span> <span class="s">&#39;extending ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
-                    <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
-
-                    <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span> <span class="o">=</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span>
-                    <span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span> <span class="o">=</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span>
-                    <span class="n">low_means</span><span class="p">,</span> <span class="n">mid_means</span> <span class="o">=</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">high_means</span>
-                    <span class="n">low_assign</span><span class="p">,</span> <span class="n">mid_assign</span> <span class="o">=</span> <span class="n">mid_assign</span><span class="p">,</span> <span class="n">high_assign</span>
-
-                    <span class="n">high_k</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">mid_k</span>
-                    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">high_bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">high_k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
-                            <span class="n">high_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
-                            <span class="n">high_assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
-                        <span class="k">except</span><span class="p">:</span>
-                            <span class="n">high_k</span> <span class="o">=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-                            <span class="k">if</span> <span class="n">high_k</span> <span class="o">&gt;=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-                                <span class="k">continue</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="k">raise</span>
-                        <span class="k">break</span>
-
-                <span class="k">while</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">low_k</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="k">print</span> <span class="s">&#39;shrinking ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
-                    <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
-
-                    <span class="k">if</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span> <span class="o">&gt;</span> <span class="n">mid_k</span> <span class="o">-</span> <span class="n">low_k</span><span class="p">:</span>
-                        <span class="n">k</span> <span class="o">=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-                        <span class="n">bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
-                        <span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
-                        <span class="n">assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
-
-                        <span class="k">if</span> <span class="n">bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
-                            <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span> <span class="o">=</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">k</span>
-                            <span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span> <span class="o">=</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">bic</span>
-                            <span class="n">low_means</span><span class="p">,</span> <span class="n">mid_means</span> <span class="o">=</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">means</span>
-                            <span class="n">low_assign</span><span class="p">,</span> <span class="n">mid_assign</span> <span class="o">=</span> <span class="n">mid_assign</span><span class="p">,</span> <span class="n">assign</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">high_k</span> <span class="o">=</span> <span class="n">k</span>
-                            <span class="n">high_bic</span> <span class="o">=</span> <span class="n">bic</span>
-                            <span class="n">high_means</span> <span class="o">=</span> <span class="n">means</span>
-                            <span class="n">high_assign</span> <span class="o">=</span> <span class="n">assign</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">k</span> <span class="o">=</span> <span class="n">low_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">mid_k</span> <span class="o">-</span> <span class="n">low_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-                        <span class="n">bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
-                        <span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
-                        <span class="n">assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
-
-                        <span class="k">if</span> <span class="n">bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
-                            <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">mid_k</span>
-                            <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span> <span class="o">=</span> <span class="n">bic</span><span class="p">,</span> <span class="n">mid_bic</span>
-                            <span class="n">mid_means</span><span class="p">,</span> <span class="n">high_means</span> <span class="o">=</span> <span class="n">means</span><span class="p">,</span> <span class="n">mid_means</span>
-                            <span class="n">mid_assign</span><span class="p">,</span> <span class="n">high_assign</span> <span class="o">=</span> <span class="n">assign</span><span class="p">,</span> <span class="n">mid_assign</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">low_k</span> <span class="o">=</span> <span class="n">k</span>
-                            <span class="n">low_bic</span> <span class="o">=</span> <span class="n">bic</span>
-                            <span class="n">low_means</span> <span class="o">=</span> <span class="n">means</span>
-                            <span class="n">low_assign</span> <span class="o">=</span> <span class="n">assign</span>
+            <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span>
             
-                <span class="k">print</span> <span class="s">&#39;Found best k, BIC: &#39;</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_bic</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">mid_assign</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">high_bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;extending ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
+
+                <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span> <span class="o">=</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span>
+                <span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span> <span class="o">=</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span>
+                <span class="n">low_means</span><span class="p">,</span> <span class="n">mid_means</span> <span class="o">=</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">high_means</span>
+                <span class="n">low_assign</span><span class="p">,</span> <span class="n">mid_assign</span> <span class="o">=</span> <span class="n">mid_assign</span><span class="p">,</span> <span class="n">high_assign</span>
+
+                <span class="n">high_k</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">mid_k</span>
+                <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">high_bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">high_k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
+                        <span class="n">high_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
+                        <span class="n">high_assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">high_k</span> <span class="o">=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                        <span class="k">if</span> <span class="n">high_k</span> <span class="o">&gt;=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span>
+                    <span class="k">break</span>
+
+            <span class="k">while</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">low_k</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;shrinking ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span> <span class="o">&gt;</span> <span class="n">mid_k</span> <span class="o">-</span> <span class="n">low_k</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                    <span class="n">bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
+                    <span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
+                    <span class="n">assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
+
+                    <span class="k">if</span> <span class="n">bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
+                        <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span> <span class="o">=</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">k</span>
+                        <span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span> <span class="o">=</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">bic</span>
+                        <span class="n">low_means</span><span class="p">,</span> <span class="n">mid_means</span> <span class="o">=</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">means</span>
+                        <span class="n">low_assign</span><span class="p">,</span> <span class="n">mid_assign</span> <span class="o">=</span> <span class="n">mid_assign</span><span class="p">,</span> <span class="n">assign</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">high_k</span> <span class="o">=</span> <span class="n">k</span>
+                        <span class="n">high_bic</span> <span class="o">=</span> <span class="n">bic</span>
+                        <span class="n">high_means</span> <span class="o">=</span> <span class="n">means</span>
+                        <span class="n">high_assign</span> <span class="o">=</span> <span class="n">assign</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">low_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">mid_k</span> <span class="o">-</span> <span class="n">low_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                    <span class="n">bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_optimal_kmeans</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">)</span>
+                    <span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
+                    <span class="n">assign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign</span>
+
+                    <span class="k">if</span> <span class="n">bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
+                        <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">mid_k</span>
+                        <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span> <span class="o">=</span> <span class="n">bic</span><span class="p">,</span> <span class="n">mid_bic</span>
+                        <span class="n">mid_means</span><span class="p">,</span> <span class="n">high_means</span> <span class="o">=</span> <span class="n">means</span><span class="p">,</span> <span class="n">mid_means</span>
+                        <span class="n">mid_assign</span><span class="p">,</span> <span class="n">high_assign</span> <span class="o">=</span> <span class="n">assign</span><span class="p">,</span> <span class="n">mid_assign</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">low_k</span> <span class="o">=</span> <span class="n">k</span>
+                        <span class="n">low_bic</span> <span class="o">=</span> <span class="n">bic</span>
+                        <span class="n">low_means</span> <span class="o">=</span> <span class="n">means</span>
+                        <span class="n">low_assign</span> <span class="o">=</span> <span class="n">assign</span>
+            
+            <span class="k">print</span> <span class="s">&#39;Found best k, BIC: &#39;</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_bic</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">mid_assign</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="n">means</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">means</span><span class="p">,</span> <span class="n">assign</span><span class="p">)</span>
 
@@ -501,9 +498,14 @@
 
             <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lows</span><span class="p">,</span> <span class="n">highs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ClusteredKDEPosterior.as_healpix"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix">[docs]</a>    <span class="k">def</span> <span class="nf">as_healpix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nside</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredKDEPosterior.as_healpix"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix">[docs]</a>    <span class="k">def</span> <span class="nf">as_healpix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nside</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a healpix map of the posterior density, by default in</span>
+<span class="sd">        nested order.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">npix</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span>
-        <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pix2ang</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npix</span><span class="p">))</span>
+        <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pix2ang</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npix</span><span class="p">),</span> <span class="n">nest</span><span class="o">=</span><span class="n">nest</span><span class="p">)</span>
         <span class="n">pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">phis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span> <span class="o">-</span> <span class="n">thetas</span><span class="p">))</span>
         <span class="n">pixel_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pixels</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pixel_posts</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pixel_posts</span><span class="p">)</span>
@@ -524,7 +526,7 @@
 
         <span class="k">return</span> <span class="n">areas</span>
 
-    <span class="k">def</span> <span class="nf">_area_within</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_area_within</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">nside_max</span><span class="o">=</span><span class="mi">512</span><span class="p">):</span>
         <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
 
         <span class="n">nside</span> <span class="o">=</span> <span class="mi">1</span>
@@ -542,6 +544,9 @@
             <span class="k">print</span>
 
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">areas</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">extrap_areas</span>
+            <span class="k">elif</span> <span class="n">nside</span> <span class="o">&gt;=</span> <span class="n">nside_max</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Ending sky area calculation at nside = &#39;</span><span class="p">,</span> <span class="n">nside</span>
                 <span class="k">return</span> <span class="n">extrap_areas</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">old_areas</span> <span class="o">=</span> <span class="n">areas</span>
@@ -621,7 +626,7 @@
     </div>
     <div class="footer">
         &copy; Copyright 2014, Will M. Farr.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>
