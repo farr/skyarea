@@ -6,7 +6,7 @@ from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
 from glue.ligolw import utils
-from lalinference.bayestar import fits
+from lalinference import fits
 import healpy as hp
 import matplotlib as mpl
 import numpy as np
