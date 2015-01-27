@@ -17,7 +17,13 @@ import sky_area.sky_area_clustering as sac
 mpl.use('Agg')
 import matplotlib.pyplot as pp
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
+
+class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
+    pass
+
+lsctables.use_in(LIGOLWContentHandler)
+
+def plot_skymap(output, skypost, pixresol=np.pi/180.0):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
@@ -103,7 +109,7 @@ if __name__ == '__main__':
 
     if args.maxpts is not None:
         pts = np.random.permutation(pts)[:args.maxpts, :]
-    
+
     if args.loadpost is None:
         for i in range(args.trials):
             try:
@@ -130,21 +136,23 @@ if __name__ == '__main__':
 
     print('plotting skymap ...')
     plot_skymap(os.path.join(args.outdir, 'skymap.pdf'), skypost)
-    
+
     print('plotting cluster assignments ...')
     plot_assign(os.path.join(args.outdir, 'assign.pdf'), skypost)
-    
+
     if args.noskyarea:
         pass
     else:
         print('saving sky areas ...')
         if args.inj is not None:
-            injs = table.get_table(utils.load_filename(args.inj),
+            xmldoc = utils.load_filename(args.inj,
+                                         contenthandler=LIGOLWContentHandler)
+            injs = table.get_table(xmldoc,
                                    lsctables.SimInspiralTable.tableName)
             inj = injs[args.eventnum]
 
-            save_areas(os.path.join(args.outdir, 'areas.dat'), 
-                       skypost, 
+            save_areas(os.path.join(args.outdir, 'areas.dat'),
+                       skypost,
                        inj.simulation_id, inj.longitude, inj.latitude)
         else:
             save_areas(os.path.join(args.outdir, 'areas.dat'),
