@@ -32,7 +32,7 @@ You may want to:
 * Compute the credible areas or the area searched under a greedy
   algorithm for a distribution on the sky represented by discrete
   samples.  Use the
-  :class:`sky_area.sky_area_clustering.ClusteredKDEPosterior` class.
+  :class:`sky_area.sky_area_clustering.ClusteredSkyKDEPosterior` class.
 
 * Automatically produce the above from the output of a LALInference
   run.  Use the executable program ``run_sky_area.py``

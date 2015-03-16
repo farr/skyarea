@@ -75,7 +75,7 @@ def k_means(pts, k):
 
     return mus, assign
 
-class ClusteredKDEPosterior(object):
+class ClusteredSkyKDEPosterior(object):
     r"""Represents a kernel-density estimate of a sky-position PDF that has
     been decomposed into clusters, using a different kernel for each
     cluster.

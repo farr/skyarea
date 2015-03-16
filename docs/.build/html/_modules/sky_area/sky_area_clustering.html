@@ -125,7 +125,7 @@
 
     <span class="k">return</span> <span class="n">mus</span><span class="p">,</span> <span class="n">assign</span>
 </div>
-<div class="viewcode-block" id="ClusteredKDEPosterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior">[docs]</a><span class="k">class</span> <span class="nc">ClusteredKDEPosterior</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior">[docs]</a><span class="k">class</span> <span class="nc">ClusteredSkyKDEPosterior</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;Represents a kernel-density estimate of a sky-position PDF that has</span>
 <span class="sd">    been decomposed into clusters, using a different kernel for each</span>
 <span class="sd">    cluster.</span>
@@ -287,11 +287,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acc</span>
 
     <span class="nd">@acc.setter</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.acc"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.acc">[docs]</a>    <span class="k">def</span> <span class="nf">acc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.acc"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.acc">[docs]</a>    <span class="k">def</span> <span class="nf">acc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_acc</span> <span class="o">=</span> <span class="n">a</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.ntrials"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.ntrials">[docs]</a>    <span class="k">def</span> <span class="nf">ntrials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.ntrials"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.ntrials">[docs]</a>    <span class="k">def</span> <span class="nf">ntrials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the number of trials at each k over which the cluster</span>
 <span class="sd">        assignments have been optimized.</span>
 
@@ -299,21 +299,21 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ntrials</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.pts">[docs]</a>    <span class="k">def</span> <span class="nf">pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.pts">[docs]</a>    <span class="k">def</span> <span class="nf">pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">r&quot;&quot;&quot;Returns the points in :math:`(\alpha, \sin(\delta))` space.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pts</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.kde_pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.kde_pts">[docs]</a>    <span class="k">def</span> <span class="nf">kde_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.kde_pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.kde_pts">[docs]</a>    <span class="k">def</span> <span class="nf">kde_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the subset of points used to construct the KDE.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kde_pts</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.ranking_pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.ranking_pts">[docs]</a>    <span class="k">def</span> <span class="nf">ranking_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.ranking_pts"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.ranking_pts">[docs]</a>    <span class="k">def</span> <span class="nf">ranking_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the set of points used that are ranked under the KDE to</span>
 <span class="sd">        establish credible levels.</span>
 
@@ -321,35 +321,35 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ranking_pts</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.k"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.k">[docs]</a>    <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.k"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.k">[docs]</a>    <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the optimized number of clusters.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.assign"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.assign">[docs]</a>    <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.assign"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.assign">[docs]</a>    <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the cluster assignment number for each point.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assign</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.means"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.means">[docs]</a>    <span class="k">def</span> <span class="nf">means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.means"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.means">[docs]</a>    <span class="k">def</span> <span class="nf">means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the cluster centroids.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_means</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.kdes"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.kdes">[docs]</a>    <span class="k">def</span> <span class="nf">kdes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.kdes"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.kdes">[docs]</a>    <span class="k">def</span> <span class="nf">kdes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the scipy KDE object associated with each cluster.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdes</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.weights"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.weights">[docs]</a>    <span class="k">def</span> <span class="nf">weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.weights"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.weights">[docs]</a>    <span class="k">def</span> <span class="nf">weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the weight assigned to each cluster&#39;s KDE in the final</span>
 <span class="sd">        posterior.</span>
 
@@ -357,7 +357,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.greedy_order"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_order">[docs]</a>    <span class="k">def</span> <span class="nf">greedy_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.greedy_order"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.greedy_order">[docs]</a>    <span class="k">def</span> <span class="nf">greedy_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the ordering of ``self.ranking_pts`` from highest to lowest</span>
 <span class="sd">        posterior values.</span>
 
@@ -365,7 +365,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greedy_order</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="ClusteredKDEPosterior.greedy_posteriors"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.greedy_posteriors">[docs]</a>    <span class="k">def</span> <span class="nf">greedy_posteriors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.greedy_posteriors"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.greedy_posteriors">[docs]</a>    <span class="k">def</span> <span class="nf">greedy_posteriors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the posterior values at ``self.ranking_pts`` in greedy order.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -424,7 +424,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_greedy_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">posts</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_greedy_posteriors</span> <span class="o">=</span> <span class="n">posts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_order</span><span class="p">]</span>
 
-<div class="viewcode-block" id="ClusteredKDEPosterior.posterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.posterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the clustered KDE estimate of the sky density per steradian</span>
 <span class="sd">        at the given points in RA-DEC.</span>
 
@@ -498,7 +498,7 @@
 
             <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lows</span><span class="p">,</span> <span class="n">highs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ClusteredKDEPosterior.as_healpix"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.as_healpix">[docs]</a>    <span class="k">def</span> <span class="nf">as_healpix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nside</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.as_healpix"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.as_healpix">[docs]</a>    <span class="k">def</span> <span class="nf">as_healpix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nside</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a healpix map of the posterior density, by default in</span>
 <span class="sd">        nested order.</span>
 
@@ -551,7 +551,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">old_areas</span> <span class="o">=</span> <span class="n">areas</span>
 
-<div class="viewcode-block" id="ClusteredKDEPosterior.sky_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.sky_area">[docs]</a>    <span class="k">def</span> <span class="nf">sky_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.sky_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area">[docs]</a>    <span class="k">def</span> <span class="nf">sky_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sky area occupied by the given list of credible levels.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -561,7 +561,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ClusteredKDEPosterior.searched_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.searched_area">[docs]</a>    <span class="k">def</span> <span class="nf">searched_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.searched_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area">[docs]</a>    <span class="k">def</span> <span class="nf">searched_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sky area that must be searched using a greedy algorithm</span>
 <span class="sd">        before encountering the given points in the sky.</span>
 
@@ -570,7 +570,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ClusteredKDEPosterior.p_values"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredKDEPosterior.p_values">[docs]</a>    <span class="k">def</span> <span class="nf">p_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.p_values"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.p_values">[docs]</a>    <span class="k">def</span> <span class="nf">p_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the posterior greedy p-values (quantile in the posterior</span>
 <span class="sd">        distribution) for the given points.</span>
 

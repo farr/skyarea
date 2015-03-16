@@ -113,7 +113,7 @@ if __name__ == '__main__':
     if args.loadpost is None:
         for i in range(args.trials):
             try:
-                skypost = sac.ClusteredKDEPosterior(pts)
+                skypost = sac.ClusteredSkyKDEPosterior(pts)
                 break
             except:
                 skypost = None
