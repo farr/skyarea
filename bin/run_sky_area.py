@@ -23,7 +23,7 @@ class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
 
 lsctables.use_in(LIGOLWContentHandler)
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0):
+def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
