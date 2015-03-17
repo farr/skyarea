@@ -555,14 +555,15 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
     def __init__(self, pts, ntrials, means=None, assign=None):
         """Initialise the posterior object.
 
-        :param pts: A ``(npts, 3)`` shaped array.  The first column is RA in radians, then DEC in radians, then distance in Mpc.
+        :param pts: A ``(npts, 3)`` shaped array.  The first column is
+          RA in radians, then DEC in radians, then distance in Mpc. 
 
-        :param ntrials: The number of trials to make at each k for optimising the clustering.
+        :param ntrials: The number of trials to make at each k for
+          optimising the clustering. 
 
         :param means: If given, use these means as the clustering centroids.
 
         :param assign: If given, use these assignments for the clustering.
-
         """
         
         xyzpts = self._pts_to_xyzpts(pts)
@@ -602,7 +603,8 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         self._greedy_posteriors = posts[self.greedy_order]
 
     def posterior(self, pts):
-        """Given an array of positions in RA, DEC, dist, compute the 3D volumetric posterior density (per Mpc) at those points.
+        """Given an array of positions in RA, DEC, dist, compute the 3D
+        volumetric posterior density (per Mpc) at those points. 
 
         """
         
@@ -629,7 +631,9 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
 
     def as_healpix(self, nside, nest=True):
-        """Returns a healpix map with the mean and standard deviations of :math:`\ln d` for any pixel containing at least one posterior sample.
+        r"""Returns a healpix map with the mean and standard deviations
+        of :math:`\ln d` for any pixel containing at least one posterior
+        sample. 
 
         """
         
@@ -697,7 +701,9 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         raise NotImplementedError
 
     def conditional_posterior(self, ra, dec, ds):
-        """Returns a slice through the smoothed posterior at the given RA, DEC as a function of distance.  WARNING: the returned posterior is not normalised.
+        """Returns a slice through the smoothed posterior at the given
+        RA, DEC as a function of distance.  WARNING: the returned
+        posterior is not normalised. 
 
         """
 

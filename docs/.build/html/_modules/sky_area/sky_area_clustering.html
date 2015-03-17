@@ -605,14 +605,15 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">,</span> <span class="n">means</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">assign</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialise the posterior object.</span>
 
-<span class="sd">        :param pts: A ``(npts, 3)`` shaped array.  The first column is RA in radians, then DEC in radians, then distance in Mpc.</span>
+<span class="sd">        :param pts: A ``(npts, 3)`` shaped array.  The first column is</span>
+<span class="sd">          RA in radians, then DEC in radians, then distance in Mpc. </span>
 
-<span class="sd">        :param ntrials: The number of trials to make at each k for optimising the clustering.</span>
+<span class="sd">        :param ntrials: The number of trials to make at each k for</span>
+<span class="sd">          optimising the clustering. </span>
 
 <span class="sd">        :param means: If given, use these means as the clustering centroids.</span>
 
 <span class="sd">        :param assign: If given, use these assignments for the clustering.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="n">xyzpts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pts_to_xyzpts</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
@@ -652,7 +653,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_greedy_posteriors</span> <span class="o">=</span> <span class="n">posts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_order</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Clustered3DKDEPosterior.posterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.Clustered3DKDEPosterior.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Given an array of positions in RA, DEC, dist, compute the 3D volumetric posterior density (per Mpc) at those points.</span>
+        <span class="sd">&quot;&quot;&quot;Given an array of positions in RA, DEC, dist, compute the 3D</span>
+<span class="sd">        volumetric posterior density (per Mpc) at those points. </span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -679,7 +681,9 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pts</span><span class="p">)))</span> <span class="o">-</span> <span class="n">nparams</span><span class="o">/</span><span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
 <div class="viewcode-block" id="Clustered3DKDEPosterior.as_healpix"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix">[docs]</a>    <span class="k">def</span> <span class="nf">as_healpix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nside</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a healpix map with the mean and standard deviations of :math:`\ln d` for any pixel containing at least one posterior sample.</span>
+        <span class="sd">r&quot;&quot;&quot;Returns a healpix map with the mean and standard deviations</span>
+<span class="sd">        of :math:`\ln d` for any pixel containing at least one posterior</span>
+<span class="sd">        sample. </span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -747,7 +751,9 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 </div>
 <div class="viewcode-block" id="Clustered3DKDEPosterior.conditional_posterior"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.Clustered3DKDEPosterior.conditional_posterior">[docs]</a>    <span class="k">def</span> <span class="nf">conditional_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">ds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a slice through the smoothed posterior at the given RA, DEC as a function of distance.  WARNING: the returned posterior is not normalised.</span>
+        <span class="sd">&quot;&quot;&quot;Returns a slice through the smoothed posterior at the given</span>
+<span class="sd">        RA, DEC as a function of distance.  WARNING: the returned</span>
+<span class="sd">        posterior is not normalised. </span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 

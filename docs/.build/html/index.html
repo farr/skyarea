@@ -94,13 +94,17 @@ of the log-distance.  Does not currently produce credible volumes.</p>
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix">
 <tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a healpix map with the mean and standard deviations of <span class="math">\(\ln d\)</span> for any pixel containing at least one posterior sample.</p>
+<dd><p>Returns a healpix map with the mean and standard deviations
+of <span class="math">\(\ln d\)</span> for any pixel containing at least one posterior
+sample.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.conditional_posterior">
 <tt class="descname">conditional_posterior</tt><big>(</big><em>ra</em>, <em>dec</em>, <em>ds</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.conditional_posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.conditional_posterior" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a slice through the smoothed posterior at the given RA, DEC as a function of distance.  WARNING: the returned posterior is not normalised.</p>
+<dd><p>Returns a slice through the smoothed posterior at the given
+RA, DEC as a function of distance.  WARNING: the returned
+posterior is not normalised.</p>
 </dd></dl>
 
 <dl class="method">
@@ -111,7 +115,8 @@ of the log-distance.  Does not currently produce credible volumes.</p>
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.posterior">
 <tt class="descname">posterior</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.posterior" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given an array of positions in RA, DEC, dist, compute the 3D volumetric posterior density (per Mpc) at those points.</p>
+<dd><p>Given an array of positions in RA, DEC, dist, compute the 3D
+volumetric posterior density (per Mpc) at those points.</p>
 </dd></dl>
 
 <dl class="method">
