@@ -2,6 +2,7 @@ import bisect as bs
 import healpy as hp
 import numpy as np
 import numpy.linalg as nl
+import scipy.integrate as si
 from scipy.stats import gaussian_kde
 
 def km_assign(mus, cov, pts):
@@ -145,85 +146,7 @@ class ClusteredSkyKDEPosterior(object):
         self._ntrials = ntrials
 
         if means is None or assign is None:
-            self._set_up_kmeans(1)
-            low_bic = self._bic()
-            low_assign = self.assign
-            low_means = self.means
-            low_k = 1
-
-            mid_bic = self._set_up_optimal_kmeans(2, ntrials)
-            mid_assign = self.assign
-            mid_means = self.means
-            mid_k = 2
-
-            high_bic = self._set_up_optimal_kmeans(4, ntrials)
-            high_assign = self.assign
-            high_means = self.means
-
-            low_k, mid_k, high_k = 1, 2, 4
-            
-            while high_bic > mid_bic:
-                print 'extending ks: ', (low_k, mid_k, high_k)
-                print 'with bics: ', (low_bic, mid_bic, high_bic)
-
-                low_k, mid_k = mid_k, high_k
-                low_bic, mid_bic = mid_bic, high_bic
-                low_means, mid_means = mid_means, high_means
-                low_assign, mid_assign = mid_assign, high_assign
-
-                high_k = 2*mid_k
-                while True:
-                    try:
-                        high_bic = self._set_up_optimal_kmeans(high_k, ntrials)
-                        high_means = self.means
-                        high_assign = self.assign
-                    except:
-                        high_k = mid_k + (high_k - mid_k)/2
-                        if high_k >= mid_k + 1:
-                            continue
-                        else:
-                            raise
-                    break
-
-            while high_k - low_k > 2:
-                print 'shrinking ks: ', (low_k, mid_k, high_k)
-                print 'with bics: ', (low_bic, mid_bic, high_bic)
-
-                if high_k - mid_k > mid_k - low_k:
-                    k = mid_k + (high_k - mid_k)/2
-                    bic = self._set_up_optimal_kmeans(k, ntrials)
-                    means = self.means
-                    assign = self.assign
-
-                    if bic > mid_bic:
-                        low_k, mid_k = mid_k, k
-                        low_bic, mid_bic = mid_bic, bic
-                        low_means, mid_means = mid_means, means
-                        low_assign, mid_assign = mid_assign, assign
-                    else:
-                        high_k = k
-                        high_bic = bic
-                        high_means = means
-                        high_assign = assign
-                else:
-                    k = low_k + (mid_k - low_k)/2
-                    bic = self._set_up_optimal_kmeans(k, ntrials)
-                    means = self.means
-                    assign = self.assign
-
-                    if bic > mid_bic:
-                        mid_k, high_k = k, mid_k
-                        mid_bic, high_bic = bic, mid_bic
-                        mid_means, high_means = means, mid_means
-                        mid_assign, high_assign = assign, mid_assign
-                    else:
-                        low_k = k
-                        low_bic = bic
-                        low_means = means
-                        low_assign = assign
-            
-            print 'Found best k, BIC: ', mid_k, mid_bic
-            self._set_up_kmeans(mid_k, mid_means, mid_assign)
+            self._set_up_optimal_k()
         else:
             self._set_up_kmeans(means.shape[0], means, assign)
 
@@ -321,6 +244,87 @@ class ClusteredSkyKDEPosterior(object):
         """
         return self._greedy_posteriors
 
+    def _set_up_optimal_k(self):
+        self._set_up_kmeans(1)
+        low_bic = self._bic()
+        low_assign = self.assign
+        low_means = self.means
+        low_k = 1
+
+        mid_bic = self._set_up_optimal_kmeans(2, self.ntrials)
+        mid_assign = self.assign
+        mid_means = self.means
+        mid_k = 2
+
+        high_bic = self._set_up_optimal_kmeans(4, self.ntrials)
+        high_assign = self.assign
+        high_means = self.means
+
+        low_k, mid_k, high_k = 1, 2, 4
+            
+        while high_bic > mid_bic:
+            print 'extending ks: ', (low_k, mid_k, high_k)
+            print 'with bics: ', (low_bic, mid_bic, high_bic)
+
+            low_k, mid_k = mid_k, high_k
+            low_bic, mid_bic = mid_bic, high_bic
+            low_means, mid_means = mid_means, high_means
+            low_assign, mid_assign = mid_assign, high_assign
+
+            high_k = 2*mid_k
+            while True:
+                try:
+                    high_bic = self._set_up_optimal_kmeans(high_k, self.ntrials)
+                    high_means = self.means
+                    high_assign = self.assign
+                except:
+                    high_k = mid_k + (high_k - mid_k)/2
+                    if high_k >= mid_k + 1:
+                        continue
+                    else:
+                        raise
+                break
+
+        while high_k - low_k > 2:
+            print 'shrinking ks: ', (low_k, mid_k, high_k)
+            print 'with bics: ', (low_bic, mid_bic, high_bic)
+
+            if high_k - mid_k > mid_k - low_k:
+                k = mid_k + (high_k - mid_k)/2
+                bic = self._set_up_optimal_kmeans(k, self.ntrials)
+                means = self.means
+                assign = self.assign
+
+                if bic > mid_bic:
+                    low_k, mid_k = mid_k, k
+                    low_bic, mid_bic = mid_bic, bic
+                    low_means, mid_means = mid_means, means
+                    low_assign, mid_assign = mid_assign, assign
+                else:
+                    high_k = k
+                    high_bic = bic
+                    high_means = means
+                    high_assign = assign
+            else:
+                k = low_k + (mid_k - low_k)/2
+                bic = self._set_up_optimal_kmeans(k, self.ntrials)
+                means = self.means
+                assign = self.assign
+
+                if bic > mid_bic:
+                    mid_k, high_k = k, mid_k
+                    mid_bic, high_bic = bic, mid_bic
+                    mid_means, high_means = means, mid_means
+                    mid_assign, high_assign = assign, mid_assign
+                else:
+                    low_k = k
+                    low_bic = bic
+                    low_means = means
+                    low_assign = assign
+            
+        print 'Found best k, BIC: ', mid_k, mid_bic
+        self._set_up_kmeans(mid_k, mid_means, mid_assign)
+
     def _set_up_optimal_kmeans(self, k, ntrials):
         best_bic = np.NINF
         
@@ -328,6 +332,8 @@ class ClusteredSkyKDEPosterior(object):
             self._set_up_kmeans(k)
             bic = self._bic()
 
+            print 'k = ', k, 'ntrials = ', ntrials, 'bic = ', bic
+            
             if bic > best_bic:
                 best_means = self.means
                 best_assign = self.assign
@@ -537,3 +543,168 @@ class ClusteredSkyKDEPosterior(object):
             indexes.append(bs.bisect(greedy_levels, pl))
 
         return 1.0 - np.array(indexes)/float(n)
+
+class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
+    """Like :class:`ClusteredSkyKDEPosterior`, but clusters in 3D
+    space.  Can compute volumetric posterior density (per cubic Mpc),
+    and also produce Healpix maps of the mean and standard deviation
+    of the log-distance.  Does not currently produce credible volumes.
+
+    """
+
+    def __init__(self, pts, ntrials, means=None, assign=None):
+        """Initialise the posterior object.
+
+        :param pts: A ``(npts, 3)`` shaped array.  The first column is RA in radians, then DEC in radians, then distance in Mpc.
+
+        :param ntrials: The number of trials to make at each k for optimising the clustering.
+
+        :param means: If given, use these means as the clustering centroids.
+
+        :param assign: If given, use these assignments for the clustering.
+
+        """
+        
+        xyzpts = self._pts_to_xyzpts(pts)
+        
+        self._pts = xyzpts
+
+        ppts = np.random.permutation(xyzpts)
+
+        self._kde_pts = ppts[::2]
+        self._ranking_pts = ppts[1::2]
+        self._ntrials = ntrials
+
+        if means is None or assign is None:
+            self._set_up_optimal_k()
+        else:
+            self._set_up_kmeans(means.shape[0], means, assign)
+
+        self._set_up_greedy_order()
+
+    def _pts_to_xyzpts(self, pts):
+        ras = pts[:,0]
+        decs = pts[:,1]
+        ds = pts[:,2]
+        
+        xyzpts = np.column_stack((ds*np.cos(ras)*np.cos(decs),
+                                  ds*np.sin(ras)*np.cos(decs),
+                                  ds*np.sin(decs)))
+
+        return xyzpts
+
+
+    def _set_up_greedy_order(self):
+        pts = self.ranking_pts.copy()
+
+        posts = self.posterior(pts)
+        self._greedy_order = np.argsort(posts)[::-1]
+        self._greedy_posteriors = posts[self.greedy_order]
+
+    def posterior(self, pts):
+        """Given an array of positions in RA, DEC, dist, compute the 3D volumetric posterior density (per Mpc) at those points.
+
+        """
+        
+        pts = np.atleast_2d(pts)
+
+        xyzpts = self._pts_to_xyzpts(pts)
+
+        return self._posterior(xyzpts)
+
+    def _bic(self):
+        ndim = self.kde_pts.shape[1]
+        npts = self.kde_pts.shape[0]
+
+        nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
+
+        xyzpts = self.kde_pts
+        ds = np.sqrt(np.sum(np.square(xyzpts), axis=1))
+        ras = np.arctan2(xyzpts[:,1], xyzpts[:,0])
+        sin_dec = xyzpts[:,2] / ds
+        dec = np.arcsin(sin_dec)
+
+        pts = np.column_stack((ras, dec, ds))
+        
+        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
+
+    def as_healpix(self, nside, nest=True):
+        """Returns a healpix map with the mean and standard deviations of :math:`\ln d` for any pixel containing at least one posterior sample.
+
+        """
+        
+        npix = hp.nside2npix(nside)
+
+        thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
+
+        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
+
+        ds = np.sqrt(np.sum(np.square(self.pts), axis=1))
+
+        unit_vecs = self.pts / ds[:,np.newaxis]
+
+        binned_pixes = np.bincount(hp.vec2pix(nside,
+                                              unit_vecs[:,0],
+                                              unit_vecs[:,1],
+                                              unit_vecs[:,2],
+                                              nest=nest),
+                                  minlength=hp.nside2npix(nside))        
+
+        dmin = np.min(ds)
+        dmax = np.max(ds)
+
+        logd_sigmalogd = []
+        for n, pix in zip(binned_pixes, pixels):
+            if n > 0:
+                ra = pix[0]
+                dec = pix[1]
+
+                def radial_posterior(ds):
+                    pts = np.column_stack((ra + 0*ds,
+                                           dec + 0*ds,
+                                           ds))
+                    return ds*ds*self.posterior(pts)
+                def radial_log_posterior(ds):
+                    pts = np.column_stack((ra + 0*ds,
+                                           dec + 0*ds,
+                                           ds))
+                    return ds*ds*np.log(ds)*self.posterior(pts)
+                def radial_log2_posterior(ds):
+                    pts = np.column_stack((ra + 0*ds,
+                                           dec + 0*ds,
+                                           ds))
+                    return ds*ds*np.log(ds)*np.log(ds)*self.posterior(pts)
+
+                norm = si.romberg(radial_posterior, dmin, dmax, vec_func=True)
+                mean_log = si.romberg(radial_log_posterior, dmin, dmax, vec_func=True)/norm
+                mean_log2 = si.romberg(radial_log2_posterior, dmin, dmax, vec_func=True)/norm
+
+                sigma_log = np.sqrt(mean_log2 - mean_log*mean_log)
+                logd_sigmalogd.append((mean_log, sigma_log))
+            else:
+                logd_sigmalogd.append((np.inf, 0.0))
+        logd_sigmalogd = np.array(logd_sigmalogd)
+
+        return logd_sigmalogd.squeeze()
+                
+    def sky_area(self, cls):
+        raise NotImplementedError
+
+    def searched_area(self, pts):
+        raise NotImplementedError
+
+    def p_values(self, pts):
+        raise NotImplementedError
+
+    def conditional_posterior(self, ra, dec, ds):
+        """Returns a slice through the smoothed posterior at the given RA, DEC as a function of distance.  WARNING: the returned posterior is not normalised.
+
+        """
+
+        ds = np.atleast_1d(ds)
+        ras = ra + 0*ds
+        decs = dec + 0*ds
+
+        pts = np.column_stack((ras, decs, ds))
+
+        return self.posterior(pts)

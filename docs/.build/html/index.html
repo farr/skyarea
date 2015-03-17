@@ -78,9 +78,54 @@ the command-line, the <tt class="docutils literal"><span class="pre">make_search
 produce a cumulative distribution of searched/credible areas from a
 combined data set of posteriors, as in <a class="reference external" href="http://arxiv.org/abs/1404.5623">Singer, et al</a>.  Use the <tt class="docutils literal"><span class="pre">process_areas.py</span></tt>
 executable.</li>
+<li>Compute, as a function of position on the sky, the constraints on
+the distance of the source.  Use the <a class="reference internal" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior" title="sky_area.sky_area_clustering.Clustered3DKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">sky_area.sky_area_clustering.Clustered3DKDEPosterior</span></tt></a>.</li>
 </ul>
 <div class="section" id="module-sky_area.sky_area_clustering">
 <span id="the-sky-area-sky-area-clustering-module"></span><h2>The <a class="reference internal" href="#module-sky_area.sky_area_clustering" title="sky_area.sky_area_clustering"><tt class="xref py py-mod docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt></a> Module<a class="headerlink" href="#module-sky_area.sky_area_clustering" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior">
+<em class="property">class </em><tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">Clustered3DKDEPosterior</tt><big>(</big><em>pts</em>, <em>ntrials</em>, <em>means=None</em>, <em>assign=None</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior" title="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">sky_area.sky_area_clustering.ClusteredSkyKDEPosterior</span></tt></a></p>
+<p>Like <a class="reference internal" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior" title="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">ClusteredSkyKDEPosterior</span></tt></a>, but clusters in 3D
+space.  Can compute volumetric posterior density (per cubic Mpc),
+and also produce Healpix maps of the mean and standard deviation
+of the log-distance.  Does not currently produce credible volumes.</p>
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix">
+<tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a healpix map with the mean and standard deviations of <span class="math">\(\ln d\)</span> for any pixel containing at least one posterior sample.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.conditional_posterior">
+<tt class="descname">conditional_posterior</tt><big>(</big><em>ra</em>, <em>dec</em>, <em>ds</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.conditional_posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.conditional_posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a slice through the smoothed posterior at the given RA, DEC as a function of distance.  WARNING: the returned posterior is not normalised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.p_values">
+<tt class="descname">p_values</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.p_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.p_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.posterior">
+<tt class="descname">posterior</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an array of positions in RA, DEC, dist, compute the 3D volumetric posterior density (per Mpc) at those points.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.searched_area">
+<tt class="descname">searched_area</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.searched_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.searched_area" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.sky_area">
+<tt class="descname">sky_area</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.sky_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.sky_area" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior">
 <em class="property">class </em><tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">ClusteredSkyKDEPosterior</tt><big>(</big><em>pts</em>, <em>ntrials=5</em>, <em>means=None</em>, <em>assign=None</em>, <em>acc=0.01</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior" title="Permalink to this definition">¶</a></dt>

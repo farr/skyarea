@@ -48,6 +48,9 @@ You may want to:
   <http://arxiv.org/abs/1404.5623>`_.  Use the ``process_areas.py``
   executable.
 
+* Compute, as a function of position on the sky, the constraints on
+  the distance of the source.  Use the :class:`sky_area.sky_area_clustering.Clustered3DKDEPosterior`.
+
 The :mod:`sky_area.sky_area_clustering` Module
 ----------------------------------------------
 
