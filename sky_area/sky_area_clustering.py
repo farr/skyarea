@@ -552,7 +552,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
     """
 
-    def __init__(self, pts, ntrials, means=None, assign=None):
+    def __init__(self, pts, ntrials=5, means=None, assign=None):
         """Initialise the posterior object.
 
         :param pts: A ``(npts, 3)`` shaped array.  The first column is
@@ -632,7 +632,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
     def as_healpix(self, nside, nest=True):
         r"""Returns a healpix map with the mean and standard deviations
-        of :math:`\ln d` for any pixel containing at least one posterior
+        of :math:`d` for any pixel containing at least one posterior
         sample. 
 
         """
@@ -657,39 +657,40 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         dmin = np.min(ds)
         dmax = np.max(ds)
 
-        logd_sigmalogd = []
+        d_sigmad = []
+
         for n, pix in zip(binned_pixes, pixels):
             if n > 0:
                 ra = pix[0]
                 dec = pix[1]
 
-                def radial_posterior(ds):
+                def post_integrand(ds):
                     pts = np.column_stack((ra + 0*ds,
                                            dec + 0*ds,
                                            ds))
                     return ds*ds*self.posterior(pts)
-                def radial_log_posterior(ds):
+                def dpost_integrand(ds):
                     pts = np.column_stack((ra + 0*ds,
                                            dec + 0*ds,
                                            ds))
-                    return ds*ds*np.log(ds)*self.posterior(pts)
-                def radial_log2_posterior(ds):
+                    return ds*ds*ds*self.posterior(pts)
+                def d2post_integrand(ds):
                     pts = np.column_stack((ra + 0*ds,
                                            dec + 0*ds,
                                            ds))
-                    return ds*ds*np.log(ds)*np.log(ds)*self.posterior(pts)
+                    d2 = ds*ds
+                    return d2*d2*self.posterior(pts)
+                norm = si.romberg(post_integrand, dmin, dmax, tol=0, rtol=1e-3, vec_func=True)
+                dmean = si.romberg(dpost_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
+                d2mean = si.romberg(d2post_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
 
-                norm = si.romberg(radial_posterior, dmin, dmax, vec_func=True)
-                mean_log = si.romberg(radial_log_posterior, dmin, dmax, vec_func=True)/norm
-                mean_log2 = si.romberg(radial_log2_posterior, dmin, dmax, vec_func=True)/norm
-
-                sigma_log = np.sqrt(mean_log2 - mean_log*mean_log)
-                logd_sigmalogd.append((mean_log, sigma_log))
+                sigma_d = np.sqrt(d2mean - dmean*dmean)
+                d_sigmad.append((dmean, sigma_d))
             else:
-                logd_sigmalogd.append((np.inf, 0.0))
-        logd_sigmalogd = np.array(logd_sigmalogd)
+                d_sigmad.append((np.inf, 0.0))
+        d_sigmad = np.array(d_sigmad)
 
-        return logd_sigmalogd.squeeze()
+        return d_sigmad.squeeze()
                 
     def sky_area(self, cls):
         raise NotImplementedError

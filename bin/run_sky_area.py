@@ -93,6 +93,8 @@ if __name__ == '__main__':
 
     parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
 
+    parser.add_option('--enable-distance-map', action='store_true', default=False, help='enable output of healpy map of distance mean and s.d.')
+
     parser.add_option('--nside', type=int, default=512, help='HEALPix resolution [default: %default]')
 
     parser.add_option('--objid', help='event ID to store in FITS header')
@@ -161,8 +163,23 @@ if __name__ == '__main__':
 
     fits_nest = True
 
-    fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
-                       skypost.as_healpix(args.nside, nest=fits_nest), 
-                       creator=parser.get_prog_name(),
-                       objid=args.objid, gps_time=data['time'].mean(),
-                       nest=fits_nest)
+    if not args.enable_distance_map:
+        fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
+                           skypost.as_healpix(args.nside, nest=fits_nest), 
+                           creator=parser.get_prog_name(),
+                           objid=args.objid, gps_time=data['time'].mean(),
+                           nest=fits_nest)
+    else:
+        print('Constructing 3D clustered posterior.')
+        skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
+
+        print('Producing distance map')
+        map3d = skypost3d.as_healpix(args.nside, nest=fits_nest)
+        mapsky = skypost.as_healpix(args.nside, nest=fits_nest)
+
+        hpmap = np.column_stack((mapsky, map3d))
+        
+        hp.write_map(os.path.join(args.outdir, 'skymap.fits.gz'),
+                     hpmap.T,
+                     nest=fits_nest)
+                         
