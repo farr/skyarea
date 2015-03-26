@@ -687,7 +687,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
                 sigma_d = np.sqrt(d2mean - dmean*dmean)
                 d_sigmad.append((dmean, sigma_d))
             else:
-                d_sigmad.append((np.inf, 0.0))
+                d_sigmad.append((np.inf, 1.0))
         d_sigmad = np.array(d_sigmad)
 
         return d_sigmad.squeeze()
