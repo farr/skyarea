@@ -674,17 +674,17 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
                                            dec + 0*ds,
                                            ds))
                     return ds*ds*ds*self.posterior(pts)
+                norm = si.romberg(post_integrand, dmin, dmax, tol=0, rtol=1e-3, vec_func=True)
+                dmean = si.romberg(dpost_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
                 def d2post_integrand(ds):
                     pts = np.column_stack((ra + 0*ds,
                                            dec + 0*ds,
                                            ds))
-                    d2 = ds*ds
-                    return d2*d2*self.posterior(pts)
-                norm = si.romberg(post_integrand, dmin, dmax, tol=0, rtol=1e-3, vec_func=True)
-                dmean = si.romberg(dpost_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
-                d2mean = si.romberg(d2post_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
+                    dd = (ds - dmean)
+                    return dd*dd*ds*ds*self.posterior(pts)
+                d2 = si.romberg(d2post_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
 
-                sigma_d = np.sqrt(d2mean - dmean*dmean)
+                sigma_d = np.sqrt(d2)
                 d_sigmad.append((dmean, sigma_d))
             else:
                 d_sigmad.append((np.inf, 1.0))
