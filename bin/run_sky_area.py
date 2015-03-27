@@ -164,11 +164,7 @@ if __name__ == '__main__':
     fits_nest = True
 
     if not args.enable_distance_map:
-        fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
-                           skypost.as_healpix(args.nside, nest=fits_nest), 
-                           creator=parser.get_prog_name(),
-                           objid=args.objid, gps_time=data['time'].mean(),
-                           nest=fits_nest)
+        hpmap = skypost.as_healpix(args.nside, nest=fits_nest)
     else:
         print('Constructing 3D clustered posterior.')
         skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
@@ -177,9 +173,9 @@ if __name__ == '__main__':
         map3d = skypost3d.as_healpix(args.nside, nest=fits_nest)
         mapsky = skypost.as_healpix(args.nside, nest=fits_nest)
 
-        hpmap = np.column_stack((mapsky, map3d))
+        hpmap = np.column_stack((mapsky, map3d)).T
         
-        hp.write_map(os.path.join(args.outdir, 'skymap.fits.gz'),
-                     hpmap.T,
-                     nest=fits_nest)
-                         
+    fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
+                       hpmap, creator=parser.get_prog_name(),
+                       objid=args.objid, gps_time=data['time'].mean(),
+                       nest=fits_nest)
