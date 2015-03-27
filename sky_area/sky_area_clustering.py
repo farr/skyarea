@@ -4,6 +4,7 @@ import numpy as np
 import numpy.linalg as nl
 import scipy.integrate as si
 from scipy.stats import gaussian_kde
+from scipy.special import erf
 
 def km_assign(mus, cov, pts):
     """Implements the assignment step in the k-means algorithm.  Given a
@@ -636,61 +637,49 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         sample. 
 
         """
+
+        def _expectation_values(mean, var):
+            x = 0.5 * (1 + erf(mean / np.sqrt(2 * var)))
+            y = np.sqrt(0.5*var/np.pi) * np.exp(-0.5 * np.square(mean) / var)
+            mean2 = np.square(mean)
+            return (x, mean * x + y, (mean2 + var) * x + mean * y)
         
         npix = hp.nside2npix(nside)
 
-        thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
+        prob = np.empty(npix)
+        mean = np.empty(npix)
+        std = np.empty(npix)
 
-        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
-
-        ds = np.sqrt(np.sum(np.square(self.pts), axis=1))
-
-        unit_vecs = self.pts / ds[:,np.newaxis]
-
-        binned_pixes = np.bincount(hp.vec2pix(nside,
-                                              unit_vecs[:,0],
-                                              unit_vecs[:,1],
-                                              unit_vecs[:,2],
-                                              nest=nest),
-                                  minlength=hp.nside2npix(nside))        
-
-        dmin = np.min(ds)
-        dmax = np.max(ds)
-
-        d_sigmad = []
-
-        for n, pix in zip(binned_pixes, pixels):
-            if n > 0:
-                ra = pix[0]
-                dec = pix[1]
-
-                def post_integrand(ds):
-                    pts = np.column_stack((ra + 0*ds,
-                                           dec + 0*ds,
-                                           ds))
-                    return ds*ds*self.posterior(pts)
-                def dpost_integrand(ds):
-                    pts = np.column_stack((ra + 0*ds,
-                                           dec + 0*ds,
-                                           ds))
-                    return ds*ds*ds*self.posterior(pts)
-                norm = si.romberg(post_integrand, dmin, dmax, tol=0, rtol=1e-3, vec_func=True)
-                dmean = si.romberg(dpost_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
-                def d2post_integrand(ds):
-                    pts = np.column_stack((ra + 0*ds,
-                                           dec + 0*ds,
-                                           ds))
-                    dd = (ds - dmean)
-                    return dd*dd*ds*ds*self.posterior(pts)
-                d2 = si.romberg(d2post_integrand, dmin, dmax, rtol=0, tol=1e-2, vec_func=True) / norm
-
-                sigma_d = np.sqrt(d2)
-                d_sigmad.append((dmean, sigma_d))
+        for ipix in np.arange(npix):
+            n = np.asarray(hp.pix2vec(nside, ipix, nest=nest))
+            norm = 0
+            rbar = 0
+            r2bar = 0
+            for kde, weight in zip(self.kdes, self.weights):
+                M = kde.dataset
+                N = M.shape[1]
+                invS = kde.inv_cov
+                invs = np.dot(n.T, np.dot(invS, n))
+                m = np.dot(n.T, np.dot(invS, M)) / invs
+                weights = weight * (1/(2*np.pi)) * np.sqrt(np.linalg.det(invS) / invs) * np.exp(0.5 * (np.square(m) * invs - (np.dot(invS, M) * M).sum(0)))
+                norm_, rbar_, r2bar_ = _expectation_values(m, 1/invs)
+                norm += (weights * norm_).sum() / N
+                rbar += (weights * rbar_).sum() / N
+                r2bar += (weights * r2bar_).sum() / N
+            rbar /= norm
+            r2bar /= norm
+            var = r2bar - np.square(rbar)
+            prob[ipix] = norm
+            if var >= 0:
+                mean[ipix] = rbar
+                std[ipix] = np.sqrt(var)
             else:
-                d_sigmad.append((np.inf, 1.0))
-        d_sigmad = np.array(d_sigmad)
+                mean[ipix] = np.inf
+                std[ipix] = 1.0
 
-        return d_sigmad.squeeze()
+        prob /= prob.sum()
+
+        return [prob, mean, std]
                 
     def sky_area(self, cls):
         raise NotImplementedError

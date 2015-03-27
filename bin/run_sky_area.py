@@ -170,10 +170,7 @@ if __name__ == '__main__':
         skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
 
         print('Producing distance map')
-        map3d = skypost3d.as_healpix(args.nside, nest=fits_nest)
-        mapsky = skypost.as_healpix(args.nside, nest=fits_nest)
-
-        hpmap = np.column_stack((mapsky, map3d)).T
+        hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
         
     fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
                        hpmap, creator=parser.get_prog_name(),
