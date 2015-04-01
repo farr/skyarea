@@ -642,7 +642,10 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
             x = 0.5 * (1 + erf(mean / np.sqrt(2 * var)))
             y = np.sqrt(0.5*var/np.pi) * np.exp(-0.5 * np.square(mean) / var)
             mean2 = np.square(mean)
-            return (x, mean * x + y, (mean2 + var) * x + mean * y)
+            return (
+                (mean2 + var) * x + mean * y,
+                mean * (mean2 + 3 * var) * x + (mean2 + 2 * var) * y,
+                (mean2 * mean2 + 6 * mean2 * var + 3 * var * var) * x + mean * (mean2 + 5 * var) * y)
         
         npix = hp.nside2npix(nside)
 
