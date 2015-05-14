@@ -82,6 +82,8 @@ if __name__ == '__main__':
     parser.add_option('--outdir', help='output directory', default='.')
     parser.add_option('--samples', help='posterior samples file')
 
+    parser.add_option('--pdf', action='store_true', default=False, help='output plots in PDF format [default: PNG]')
+
     parser.add_option('--inj', help='injection XML')
     parser.add_option('--eventnum', default=0, type='int', help='event number [default: %default]')
 
@@ -137,10 +139,18 @@ if __name__ == '__main__':
         pickle.dump(skypost, out)
 
     print('plotting skymap ...')
-    plot_skymap(os.path.join(args.outdir, 'skymap.pdf'), skypost)
+    if args.pdf:
+        skymap_out = os.path.join(args.outdir, 'skymap.pdf')
+    else:
+        skymap_out = os.path.join(args.outdir, 'skymap.png')
+    plot_skymap(skymap_out, skypost)
 
     print('plotting cluster assignments ...')
-    plot_assign(os.path.join(args.outdir, 'assign.pdf'), skypost)
+    if args.pdf:
+        assign_out = os.path.join(args.outdir, 'assign.pdf')
+    else:
+        assign_out = os.path.join(args.outdir, 'assign.png')
+    plot_assign(assign_out, skypost)
 
     if args.noskyarea:
         pass
