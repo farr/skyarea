@@ -82,6 +82,8 @@ if __name__ == '__main__':
     parser.add_option('--outdir', help='output directory', default='.')
     parser.add_option('--samples', help='posterior samples file')
 
+    parser.add_option('--fitsoutname', help='filename for the FITS file', default='skymap.fits.gz')
+
     parser.add_option('--pdf', action='store_true', default=False, help='output plots in PDF format [default: PNG]')
 
     parser.add_option('--inj', help='injection XML')
@@ -182,7 +184,7 @@ if __name__ == '__main__':
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
         
-    fits.write_sky_map(os.path.join(args.outdir, 'skymap.fits.gz'),
+    fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
                        hpmap, creator=parser.get_prog_name(),
                        objid=args.objid, gps_time=data['time'].mean(),
                        nest=fits_nest)
