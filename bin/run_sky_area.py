@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 from __future__ import print_function
 
 from optparse import OptionParser
@@ -23,7 +23,7 @@ class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
 
 lsctables.use_in(LIGOLWContentHandler)
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
+def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
@@ -35,6 +35,11 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
 
     pp.clf()
     hp.mollview(pix_post, nest=nest)
+    if inj is not None:
+      # If using an injection file, also plot an X at the true position
+      hp.projplot(180./np.pi*(inj['ra']),180/np.pi*inj['dec'],'wx',lonlat=True,ms=30,mew=1)
+  
+
     pp.savefig(output)
 
 def plot_assign(output, skypost):
@@ -140,12 +145,32 @@ if __name__ == '__main__':
     with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
         pickle.dump(skypost, out)
 
+    # First check if injection file is given and fill and auxiliary dictionary
+    injpos=None
+    if args.inj is not None:
+      xmldoc = utils.load_filename(args.inj,
+                                    contenthandler=LIGOLWContentHandler)
+      try:
+        print('Checking if using a sim_inspiral table...')
+        injs = table.get_table(xmldoc,
+                   lsctables.SimInspiralTable.tableName)
+        inj = injs[args.eventnum]
+        injpos={'ra':inj.longitude,'dec':inj.latitude,'id':inj.simulation_id}
+        print(' yes')
+      except:
+        print('Checking if using a sim_burst table...')
+        injs = table.get_table(xmldoc,
+                     lsctables.SimBurstTable.tableName)
+        inj = injs[args.eventnum]
+        injpos={'ra':inj.ra,'dec':inj.dec,'id':inj.simulation_id}
+        print(' yes')
+
     print('plotting skymap ...')
     if args.pdf:
         skymap_out = os.path.join(args.outdir, 'skymap.pdf')
     else:
         skymap_out = os.path.join(args.outdir, 'skymap.png')
-    plot_skymap(skymap_out, skypost)
+    plot_skymap(skymap_out, skypost,inj=injpos)
 
     print('plotting cluster assignments ...')
     if args.pdf:
@@ -158,16 +183,11 @@ if __name__ == '__main__':
         pass
     else:
         print('saving sky areas ...')
-        if args.inj is not None:
-            xmldoc = utils.load_filename(args.inj,
-                                         contenthandler=LIGOLWContentHandler)
-            injs = table.get_table(xmldoc,
-                                   lsctables.SimInspiralTable.tableName)
-            inj = injs[args.eventnum]
-
-            save_areas(os.path.join(args.outdir, 'areas.dat'),
+        if injpos is not None:
+              save_areas(os.path.join(args.outdir, 'areas.dat'),
                        skypost,
-                       inj.simulation_id, inj.longitude, inj.latitude)
+                       injpos['id'], injpos['ra'], injpos['dec'])
+
         else:
             save_areas(os.path.join(args.outdir, 'areas.dat'),
                        skypost,
@@ -179,7 +199,12 @@ if __name__ == '__main__':
         hpmap = skypost.as_healpix(args.nside, nest=fits_nest)
     else:
         print('Constructing 3D clustered posterior.')
-        skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
+        try:
+          skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
+        except:
+          print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
+          import sys
+          sys.exit(1)
 
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
