@@ -208,8 +208,18 @@ if __name__ == '__main__':
 
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
-        
+    names=data.dtype.names 
+    if 'time' in names:
+      gps_time=data['time'].mean()
+    elif 'time_mean' in names:
+      gps_time=data['time_mean'].mean()
+    elif 'time_maxl' in names:
+      gps_time=data['time_maxl'].mean()
+    else:
+      print("Cannot find time, time_mean, or time maxl variable in posterior. Not saving sky_pos obj.\n")
+      exit(0)
+
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
                        hpmap, creator=parser.get_prog_name(),
-                       objid=args.objid, gps_time=data['time'].mean(),
+                       objid=args.objid, gps_time=gps_time,
                        nest=fits_nest)
