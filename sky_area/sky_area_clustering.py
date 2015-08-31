@@ -4,7 +4,6 @@ import numpy as np
 import numpy.linalg as nl
 import scipy.integrate as si
 from scipy.stats import gaussian_kde
-from scipy.special import erf
 
 def km_assign(mus, cov, pts):
     """Implements the assignment step in the k-means algorithm.  Given a
@@ -664,53 +663,31 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         sample. 
 
         """
+        from lalinference.bayestar import distance
 
-        def _expectation_values(mean, var):
-            x = 0.5 * (1 + erf(mean / np.sqrt(2 * var)))
-            y = np.sqrt(0.5*var/np.pi) * np.exp(-0.5 * np.square(mean) / var)
-            mean2 = np.square(mean)
-            return (
-                (mean2 + var) * x + mean * y,
-                mean * (mean2 + 3 * var) * x + (mean2 + 2 * var) * y,
-                (mean2 * mean2 + 6 * mean2 * var + 3 * var * var) * x + mean * (mean2 + 5 * var) * y)
-        
         npix = hp.nside2npix(nside)
+        datasets = [kde.dataset for kde in self.kdes]
+        inverse_covariances = [kde.inv_cov for kde in self.kdes]
+        weights = self.weights
 
-        prob = np.empty(npix)
-        mean = np.empty(npix)
-        std = np.empty(npix)
+        # Compute marginal probability, conditional mean, and conditional
+        # standard deviation in all directions.
+        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
+            np.asarray(hp.pix2vec(nside, ipix, nest=nest)),
+            datasets, inverse_covariances, weights)
+            for ipix in range(npix)])
 
-        for ipix in np.arange(npix):
-            n = np.asarray(hp.pix2vec(nside, ipix, nest=nest))
-            norm = 0
-            rbar = 0
-            r2bar = 0
-            for kde, weight in zip(self.kdes, self.weights):
-                M = kde.dataset
-                N = M.shape[1]
-                invS = kde.inv_cov
-                invs = np.dot(n.T, np.dot(invS, n))
-                m = np.dot(n.T, np.dot(invS, M)) / invs
-                weights = weight * (1/(2*np.pi)) * np.sqrt(np.linalg.det(invS) / invs) * np.exp(0.5 * (np.square(m) * invs - (np.dot(invS, M) * M).sum(0)))
-                norm_, rbar_, r2bar_ = _expectation_values(m, 1/invs)
-                norm += (weights * norm_).sum() / N
-                rbar += (weights * rbar_).sum() / N
-                r2bar += (weights * r2bar_).sum() / N
-            rbar /= norm
-            r2bar /= norm
-            var = r2bar - np.square(rbar)
-            prob[ipix] = norm
-            if var >= 0:
-                mean[ipix] = rbar
-                std[ipix] = np.sqrt(var)
-            else:
-                mean[ipix] = np.inf
-                std[ipix] = 1.0
-
+        # Normalize marginal probability...
+        # just to be safe. It should be marginalized already.
         prob /= prob.sum()
 
-        return [prob, mean, std]
-                
+        # Apply method of moments to find location parameter, scale parameter,
+        # and normalization.
+        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
+
+        # Done!
+        return prob, distmu, distsigma, distnorm
+
     def sky_area(self, cls):
         raise NotImplementedError
 
