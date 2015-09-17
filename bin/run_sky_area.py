@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import matplotlib as mpl
+mpl.use('Agg')
+
 from optparse import OptionParser
 from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
 from glue.ligolw import utils
+import lalinference.cmap
 from lalinference import fits
+from lalinference import plot
 import healpy as hp
-import matplotlib as mpl
 import numpy as np
 import os
 import pickle
 import sky_area.sky_area_clustering as sac
 
-mpl.use('Agg')
 import matplotlib.pyplot as pp
-
 
 class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
     pass
@@ -33,8 +35,11 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True):
 
     pix_post = skypost.posterior(pixels)
 
-    pp.clf()
-    hp.mollview(pix_post, nest=nest)
+    fig = pp.figure(frameon=False)
+    ax = pp.subplot(111, projection='astro mollweide')
+    ax.cla()
+    ax.grid()
+    plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=pp.get_cmap('cylon'))
     pp.savefig(output)
 
 def plot_assign(output, skypost):
