@@ -42,8 +42,8 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None):
     plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=pp.get_cmap('cylon'))
 
     if inj is not None:
-      # If using an injection file, also plot an X at the true position
-      hp.projplot(180./np.pi*(inj['ra']),180/np.pi*inj['dec'],'wx',lonlat=True,ms=30,mew=1)
+        # If using an injection file, also plot an X at the true position
+        pp.plot(inj['ra'], inj['dec'], 'kx', ms=30, mew=1)
 
     pp.savefig(output)
 
