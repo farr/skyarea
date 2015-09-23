@@ -29,8 +29,9 @@ def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
     :param pix_per_beam: The number of pixels in the output map per
       beam (default 10).
 
-    :return: An array representing the (unnormalised) posterior
-      convolved with a Gaussian beam of the given size.
+    :return: An array representing the posterior convolved with a
+      Gaussian beam of the given size.  The array is normalised as a
+      probability density per square degree.
 
     """
 
@@ -49,4 +50,7 @@ def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
 
     if nest:
         chmap = hp.reorder(chmap, r2n=True)
-    return chmap
+
+    norm = np.sum(chmap) * hp.nside2pixarea(nside, degrees=True)
+    
+    return chmap / norm
