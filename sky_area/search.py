@@ -39,7 +39,9 @@ def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
     thetas = np.pi/2.0 - decs
 
     # Create the map in ring coordinates first.
-    hmap = np.bincount(hp.ang2pix(nside, thetas, ras), minlength=hp.nside2npix(nside))
+    hmap = np.bincount(hp.ang2pix(nside, thetas, ras))
+    if hmap.shape[0] < hp.nside2npix(nside):
+        hmap = np.concatenate((hmap, np.zeros(hp.nside2npix(nside)-hmap.shape[0])))
 
     hmap = hmap / float(thetas.shape[0]) / hp.nside2pixarea(nside)
 
