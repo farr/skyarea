@@ -85,7 +85,7 @@ the distance of the source.  Use the <a class="reference internal" href="#sky_ar
 <span id="the-sky-area-sky-area-clustering-module"></span><h2>The <a class="reference internal" href="#module-sky_area.sky_area_clustering" title="sky_area.sky_area_clustering"><tt class="xref py py-mod docutils literal"><span class="pre">sky_area.sky_area_clustering</span></tt></a> Module<a class="headerlink" href="#module-sky_area.sky_area_clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior">
-<em class="property">class </em><tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">Clustered3DKDEPosterior</tt><big>(</big><em>pts</em>, <em>ntrials</em>, <em>means=None</em>, <em>assign=None</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">Clustered3DKDEPosterior</tt><big>(</big><em>pts</em>, <em>ntrials=5</em>, <em>means=None</em>, <em>assign=None</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior" title="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">sky_area.sky_area_clustering.ClusteredSkyKDEPosterior</span></tt></a></p>
 <p>Like <a class="reference internal" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior" title="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior"><tt class="xref py py-class docutils literal"><span class="pre">ClusteredSkyKDEPosterior</span></tt></a>, but clusters in 3D
 space.  Can compute volumetric posterior density (per cubic Mpc),
@@ -95,7 +95,7 @@ of the log-distance.  Does not currently produce credible volumes.</p>
 <dt id="sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix">
 <tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#Clustered3DKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.Clustered3DKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a healpix map with the mean and standard deviations
-of <span class="math">\(\ln d\)</span> for any pixel containing at least one posterior
+of <span class="math">\(d\)</span> for any pixel containing at least one posterior
 sample.</p>
 </dd></dl>
 
@@ -340,8 +340,98 @@ beam (default 10).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An array representing the (unnormalised) posterior
-convolved with a Gaussian beam of the given size.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An array representing the posterior convolved with a
+Gaussian beam of the given size.  The array is normalised as a
+probability density per square degree.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.search.search_map_credible_level_pt">
+<tt class="descclassname">sky_area.search.</tt><tt class="descname">search_map_credible_level_pt</tt><big>(</big><em>smap</em>, <em>ra</em>, <em>dec</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/search.html#search_map_credible_level_pt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.search.search_map_credible_level_pt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the credible level at which the given point would be found
+in a greedy search.  Note that this credible level has an
+intrinsic bias due to the combination of greedy search and Poisson
+fluctuations in the histogram counts used to make the map.  See
+<a class="reference external" href="https://dcc.ligo.org/LIGO-P1400054">https://dcc.ligo.org/LIGO-P1400054</a> .</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>smap</strong> &#8211; The search map.</li>
+<li><strong>ra</strong> &#8211; The RA of the point of interest.</li>
+<li><strong>dec</strong> &#8211; The DEC of the point of interest.</li>
+<li><strong>nest</strong> &#8211; <tt class="docutils literal"><span class="pre">True</span></tt> if the search map is in healpix nested order
+(default).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The fraction of the probability (between 0 and 1) that
+would be covered in a greedy search using <tt class="docutils literal"><span class="pre">smap</span></tt> before
+imaging the point at <tt class="docutils literal"><span class="pre">(ra,</span> <span class="pre">dec)</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.search.search_map_searched_area_cl">
+<tt class="descclassname">sky_area.search.</tt><tt class="descname">search_map_searched_area_cl</tt><big>(</big><em>smap</em>, <em>cl</em><big>)</big><a class="reference internal" href="_modules/sky_area/search.html#search_map_searched_area_cl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.search.search_map_searched_area_cl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the area that must be searched greedily using <tt class="docutils literal"><span class="pre">smap</span></tt> to
+reach the credible level <tt class="docutils literal"><span class="pre">cl</span></tt> (fraction between 0 and 1 of the
+probability in the map).</p>
+<p>Note that the resulting credible area will be biased because the
+posterior pixel counts used to construct the search map are
+subject to Poisson fluctuations and we search greedily, resulting
+in the upward-fluctuations being searched first.  This bias tends
+to reduce the searched area compared to the true area that would
+be computed with perfect knowledge of the distribution on the sky.
+See <a class="reference external" href="https://dcc.ligo.org/LIGO-P1400054">https://dcc.ligo.org/LIGO-P1400054</a> .</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>smap</strong> &#8211; The search map (need not be normalised).</li>
+<li><strong>cl</strong> &#8211; Fraction (between 0 and 1) of the probability to be
+covered in the search.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The area (in square degrees) that must be searched to
+reach the desired coverage of the distribution.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sky_area.search.search_map_searched_area_pt">
+<tt class="descclassname">sky_area.search.</tt><tt class="descname">search_map_searched_area_pt</tt><big>(</big><em>smap</em>, <em>ra</em>, <em>dec</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/search.html#search_map_searched_area_pt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.search.search_map_searched_area_pt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the area on the sky required to be imaged in a greedy
+search according to the map <tt class="docutils literal"><span class="pre">smap</span></tt> before imaging the point
+<tt class="docutils literal"><span class="pre">(ra,</span> <span class="pre">dec)</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>smap</strong> &#8211; The map used for the search.</li>
+<li><strong>ra</strong> &#8211; The RA of the point of interest.</li>
+<li><strong>dec</strong> &#8211; The DEC of the point of interest.</li>
+<li><strong>nest</strong> &#8211; <tt class="docutils literal"><span class="pre">True</span></tt> if the map is in nested order (default).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The area (in square degrees) that must be searched when
+following a greedy algorithm before the point at <tt class="docutils literal"><span class="pre">(ra,</span> <span class="pre">dec)</span></tt>
+is imaged.</p>
 </td>
 </tr>
 </tbody>
