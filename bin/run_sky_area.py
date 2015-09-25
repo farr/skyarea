@@ -60,16 +60,16 @@ def plot_assign(output, skypost):
 
     pp.savefig(output)
 
-def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9]):
+def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True):
     if sim_id is None or ra is None or dec is None:
         p_value = 0.0
         levels = cls
-        areas = skypost.sky_area(cls)
+        areas = skypost.sky_area(cls, fast=fast)
         areas = np.concatenate((areas, [0.0]))
     else:
         p_value = skypost.p_values(np.array([[ra,dec]]))[0]
         levels = np.concatenate((cls, [p_value]))
-        areas = skypost.sky_area(levels)
+        areas = skypost.sky_area(levels, fast=fast)
 
     rad2deg = 180.0/np.pi
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     parser.add_option('--trials', type='int', default=50, help='maximum number of trials to build sky posterior [default: %default]')
 
-    parser.add_option('--noskyarea', action='store_true', default=False, help='turn off sky area computation')
+    parser.add_option('--slowskyarea', default=False, action='store_true', help='use a much slower but robust sky area algorithm')
 
     parser.add_option('--enable-distance-map', action='store_true', default=False, help='enable output of healpy map of distance mean and s.d.')
 
@@ -184,19 +184,16 @@ if __name__ == '__main__':
         assign_out = os.path.join(args.outdir, 'assign.png')
     plot_assign(assign_out, skypost)
 
-    if args.noskyarea:
-        pass
-    else:
-        print('saving sky areas ...')
-        if injpos is not None:
-              save_areas(os.path.join(args.outdir, 'areas.dat'),
-                       skypost,
-                       injpos['id'], injpos['ra'], injpos['dec'])
+    print('saving sky areas ...')
+    if injpos is not None:
+        save_areas(os.path.join(args.outdir, 'areas.dat'),
+                   skypost,
+                   injpos['id'], injpos['ra'], injpos['dec'], fast=not(args.slowskyarea))
 
-        else:
-            save_areas(os.path.join(args.outdir, 'areas.dat'),
-                       skypost,
-                       None, None, None)
+    else:
+        save_areas(os.path.join(args.outdir, 'areas.dat'),
+                   skypost,
+                   None, None, None, fast=not(args.slowskyarea))
 
     fits_nest = True
 

@@ -250,15 +250,19 @@ establish credible levels.</p>
 
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area">
-<tt class="descname">searched_area</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.searched_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">searched_area</tt><big>(</big><em>pts</em>, <em>fast=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.searched_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the sky area that must be searched using a greedy algorithm
-before encountering the given points in the sky.</p>
+before encountering the given points in the sky.  If <tt class="docutils literal"><span class="pre">fast</span></tt>,
+then use a fast algorithm that is usually accurate but not
+guaranteed to converge to the correct answer.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area">
-<tt class="descname">sky_area</tt><big>(</big><em>cls</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.sky_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the sky area occupied by the given list of credible levels.</p>
+<tt class="descname">sky_area</tt><big>(</big><em>cls</em>, <em>fast=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.sky_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sky area occupied by the given list of credible levels.
+If <tt class="docutils literal"><span class="pre">fast</span></tt>, then use a fast algorithm that is usually
+accurate but not guaranteed to converge to the correct answer.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -269,6 +273,11 @@ posterior.</p>
 </dd></dl>
 
 </dd></dl>
+
+<dl class="function">
+<dt id="sky_area.sky_area_clustering.adaptive_grid_pixel_centers_nsides">
+<tt class="descclassname">sky_area.sky_area_clustering.</tt><tt class="descname">adaptive_grid_pixel_centers_nsides</tt><big>(</big><em>pts</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#adaptive_grid_pixel_centers_nsides"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.adaptive_grid_pixel_centers_nsides" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="sky_area.sky_area_clustering.k_means">

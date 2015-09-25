@@ -517,6 +517,23 @@
         <span class="n">pixel_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pixels</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pixel_posts</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pixel_posts</span><span class="p">)</span>
 </div>
+    <span class="k">def</span> <span class="nf">_fast_area_within</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">pts</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">_Hp_adaptive_grid_pixel</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+
+        <span class="n">pcenters</span><span class="p">,</span> <span class="n">nsides</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">pixel_centers_nsides</span><span class="p">()</span>
+        <span class="n">pcenters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pcenters</span><span class="p">)</span>
+        <span class="n">pareas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span> <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">nsides</span><span class="p">])</span>
+        <span class="n">plevels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pcenters</span><span class="p">)</span>
+
+        <span class="n">areas</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">:</span>
+            <span class="n">areas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pareas</span><span class="p">[</span><span class="n">plevels</span> <span class="o">&gt;=</span> <span class="n">l</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span>
+    
     <span class="k">def</span> <span class="nf">_area_within_nside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">nside</span><span class="p">):</span>
         <span class="n">npix</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span>
         <span class="n">pixarea</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span>
@@ -558,24 +575,34 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">old_areas</span> <span class="o">=</span> <span class="n">areas</span>
 
-<div class="viewcode-block" id="ClusteredSkyKDEPosterior.sky_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area">[docs]</a>    <span class="k">def</span> <span class="nf">sky_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.sky_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.sky_area">[docs]</a>    <span class="k">def</span> <span class="nf">sky_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sky area occupied by the given list of credible levels.</span>
+<span class="sd">        If ``fast``, then use a fast algorithm that is usually</span>
+<span class="sd">        accurate but not guaranteed to converge to the correct answer.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
 
         <span class="n">post_levels</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">greedy_posteriors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">cl</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ranking_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span> <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">cls</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fast</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fast_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ClusteredSkyKDEPosterior.searched_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area">[docs]</a>    <span class="k">def</span> <span class="nf">searched_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+<div class="viewcode-block" id="ClusteredSkyKDEPosterior.searched_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.searched_area">[docs]</a>    <span class="k">def</span> <span class="nf">searched_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sky area that must be searched using a greedy algorithm</span>
-<span class="sd">        before encountering the given points in the sky.</span>
+<span class="sd">        before encountering the given points in the sky.  If ``fast``,</span>
+<span class="sd">        then use a fast algorithm that is usually accurate but not</span>
+<span class="sd">        guaranteed to converge to the correct answer.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">post_levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fast</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fast_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_area_within</span><span class="p">(</span><span class="n">post_levels</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ClusteredSkyKDEPosterior.p_values"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.p_values">[docs]</a>    <span class="k">def</span> <span class="nf">p_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the posterior greedy p-values (quantile in the posterior</span>
@@ -756,7 +783,74 @@
 
         <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">ras</span><span class="p">,</span> <span class="n">decs</span><span class="p">,</span> <span class="n">ds</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+</div></div>
+<span class="k">class</span> <span class="nc">_Hp_adaptive_grid_pixel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">,</span> <span class="n">ipix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nside</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ipix</span> <span class="o">=</span> <span class="n">ipix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nside</span> <span class="o">=</span> <span class="n">nside</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pts</span> <span class="o">=</span> <span class="n">pts</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c"># Stop here---done</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sub_grids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">ipix</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">nside</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">nside</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">sub_ipts</span> <span class="o">=</span> <span class="p">[</span><span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="o">-</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]</span>
+            <span class="n">sub_grids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+                <span class="n">subp</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ipt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">sub_ipts</span><span class="p">)</span> <span class="k">if</span> <span class="n">ipt</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span>
+                <span class="n">sub_grids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_Hp_adaptive_grid_pixel</span><span class="p">(</span><span class="n">subp</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sub_grids</span> <span class="o">=</span> <span class="n">sub_grids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_ipix</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">ipix</span> <span class="o">+</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+            <span class="n">sub_nside</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">nside</span>
+            <span class="n">sub_ipts</span> <span class="o">=</span> <span class="p">[</span><span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="n">sub_nside</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]</span>
+
+            <span class="n">sub_grids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sip</span> <span class="ow">in</span> <span class="n">sub_ipix</span><span class="p">:</span>
+                <span class="n">subp</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ipt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">sub_ipts</span><span class="p">)</span> <span class="k">if</span> <span class="n">ipt</span> <span class="o">==</span> <span class="n">sip</span><span class="p">]</span>
+                <span class="n">sub_grids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_Hp_adaptive_grid_pixel</span><span class="p">(</span><span class="n">subp</span><span class="p">,</span> <span class="n">sip</span><span class="p">,</span> <span class="n">sub_nside</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sub_grids</span> <span class="o">=</span> <span class="n">sub_grids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ipix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ipix</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nside</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nside</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pts</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sub_grids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_grids</span>
+
+    <span class="k">def</span> <span class="nf">pixel_centers_nsides</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_grids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">pcs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">nss</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_grids</span><span class="p">:</span>
+                <span class="n">pc</span><span class="p">,</span> <span class="n">ns</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">pixel_centers_nsides</span><span class="p">()</span>
+                <span class="n">pcs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
+                <span class="n">nss</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pcs</span><span class="p">,</span> <span class="n">nss</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pix2ang</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nside</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ipix</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">phi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="o">-</span><span class="n">theta</span><span class="p">])],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nside</span><span class="p">]</span>
+
+    
+
+<div class="viewcode-block" id="adaptive_grid_pixel_centers_nsides"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.adaptive_grid_pixel_centers_nsides">[docs]</a><span class="k">def</span> <span class="nf">adaptive_grid_pixel_centers_nsides</span><span class="p">(</span><span class="n">pts</span><span class="p">):</span>
+    <span class="c"># Protect against repeated values</span>
+    <span class="n">ura</span><span class="p">,</span> <span class="n">uind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">return_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="n">uind</span><span class="p">,:]</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">_Hp_adaptive_grid_pixel</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">grid</span><span class="o">.</span><span class="n">pixel_centers_nsides</span><span class="p">()</span></div>
 </pre></div>
 
           </div>

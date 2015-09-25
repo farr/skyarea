@@ -467,6 +467,23 @@ class ClusteredSkyKDEPosterior(object):
         pixel_posts = self.posterior(pixels)
         return pixel_posts / np.sum(pixel_posts)
 
+    def _fast_area_within(self, levels):
+        pts = self.pts.copy()
+        pts[:,1] = np.arcsin(pts[:,1])
+
+        grid = _Hp_adaptive_grid_pixel(pts)
+
+        pcenters, nsides = grid.pixel_centers_nsides()
+        pcenters = np.array(pcenters)
+        pareas = np.array([hp.nside2pixarea(ns) for ns in nsides])
+        plevels = self.posterior(pcenters)
+
+        areas = []
+        for l in levels:
+            areas.append(np.sum(pareas[plevels >= l]))
+
+        return np.array(areas)
+    
     def _area_within_nside(self, levels, nside):
         npix = hp.nside2npix(nside)
         pixarea = hp.nside2pixarea(nside)
@@ -508,24 +525,34 @@ class ClusteredSkyKDEPosterior(object):
             else:
                 old_areas = areas
 
-    def sky_area(self, cls):
+    def sky_area(self, cls, fast=True):
         """Returns the sky area occupied by the given list of credible levels.
+        If ``fast``, then use a fast algorithm that is usually
+        accurate but not guaranteed to converge to the correct answer.
 
         """
         cls = np.atleast_1d(cls)
 
         post_levels = [self.greedy_posteriors[int(round(cl*self.ranking_pts.shape[0]))] for cl in cls]
 
-        return self._area_within(post_levels)
+        if fast:
+            return self._fast_area_within(post_levels)
+        else:
+            return self._area_within(post_levels)
 
-    def searched_area(self, pts):
+    def searched_area(self, pts, fast=True):
         """Returns the sky area that must be searched using a greedy algorithm
-        before encountering the given points in the sky.
+        before encountering the given points in the sky.  If ``fast``,
+        then use a fast algorithm that is usually accurate but not
+        guaranteed to converge to the correct answer.
 
         """
         post_levels = self.posterior(pts)
 
-        return self._area_within(post_levels)
+        if fast:
+            return self._fast_area_within(post_levels)
+        else:
+            return self._area_within(post_levels)
 
     def p_values(self, pts):
         """Returns the posterior greedy p-values (quantile in the posterior
@@ -707,3 +734,70 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         pts = np.column_stack((ras, decs, ds))
 
         return self.posterior(pts)
+
+class _Hp_adaptive_grid_pixel(object):
+    def __init__(self, pts, ipix=None, nside=None):
+        self._ipix = ipix
+        self._nside = nside
+        self._pts = pts
+        
+        if len(pts) <= 1:
+            # Stop here---done
+            self._sub_grids = None
+        elif ipix is None or nside is None:
+            nside = 1
+            sub_ipts = [hp.ang2pix(1, np.pi/2.0-pt[1], pt[0], nest=True) for pt in pts]
+            sub_grids = []
+            for i in range(12):
+                subp = [pt for pt, ipt in zip(pts, sub_ipts) if ipt == i]
+                sub_grids.append(_Hp_adaptive_grid_pixel(subp, i, 1))
+                
+            self._sub_grids = sub_grids
+        else:
+            sub_ipix = [4*ipix + i for i in range(4)]
+            sub_nside = 2*nside
+            sub_ipts = [hp.ang2pix(sub_nside, np.pi/2.0 - pt[1], pt[0], nest=True) for pt in pts]
+
+            sub_grids = []
+            for sip in sub_ipix:
+                subp = [pt for pt, ipt in zip(pts, sub_ipts) if ipt == sip]
+                sub_grids.append(_Hp_adaptive_grid_pixel(subp, sip, sub_nside))
+
+            self._sub_grids = sub_grids
+
+    @property
+    def ipix(self):
+        return self._ipix
+    @property
+    def nside(self):
+        return self._nside
+    @property
+    def pts(self):
+        return self._pts
+    @property
+    def sub_grids(self):
+        return self._sub_grids
+
+    def pixel_centers_nsides(self):
+        if self.sub_grids is not None:
+            pcs = []
+            nss = []
+            for sg in self.sub_grids:
+                pc, ns = sg.pixel_centers_nsides()
+                pcs.extend(pc)
+                nss.extend(ns)
+            return pcs, nss
+        else:
+            theta, phi = hp.pix2ang(self.nside, self.ipix, nest=True)
+            return [np.array([phi, np.pi/2-theta])], [self.nside]
+
+    
+
+def adaptive_grid_pixel_centers_nsides(pts):
+    # Protect against repeated values
+    ura, uind = np.unique(pts[:,0], return_index=True)
+    pts = pts[uind,:]
+
+    grid = _Hp_adaptive_grid_pixel(pts)
+
+    return grid.pixel_centers_nsides()
