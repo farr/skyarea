@@ -201,11 +201,12 @@ if __name__ == '__main__':
     else:
         print('Constructing 3D clustered posterior.')
         try:
-          skypost3d = sac.Clustered3DKDEPosterior(np.column_stack((data['ra'], data['dec'], data['dist'])))
-        except:
-          print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
-          import sys
-          sys.exit(1)
+            xyz = np.column_stack((data['ra'], data['dec'], data['dist']))
+        except ValueError:
+            print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
+            import sys
+            sys.exit(1)
+        skypost3d = sac.Clustered3DKDEPosterior(xyz)
 
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
