@@ -741,8 +741,9 @@ class _Hp_adaptive_grid_pixel(object):
         self._nside = nside
         self._pts = pts
         
-        if len(pts) <= 1:
-            # Stop here---done
+        if len(pts) <= 1 or nside >= 1<<29:
+            # Stop here.  Either there is only one point left, or we
+            # are in danger of exceeding the healpy limit on nside
             self._sub_grids = None
         elif ipix is None or nside is None:
             nside = 1
