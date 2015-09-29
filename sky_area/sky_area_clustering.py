@@ -449,23 +449,79 @@ class ClusteredSkyKDEPosterior(object):
 
             return zip(lows, highs)
 
-    def as_healpix(self, nside, nest=True):
-        """Returns a healpix map of the posterior density, by default in
-        nested order.
+    def _adaptive_grid(self):
+        pts = self.pts.copy()
+        pts[:,1] = np.arcsin(pts[:,1])
 
-        """
+        return _Hp_adaptive_grid_pixel(pts)
 
+    def _as_healpix_slow(self, nside, nest=True):
         npix = hp.nside2npix(nside)
         thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
         pixels = np.column_stack((phis, np.pi/2.0 - thetas))
         pixel_posts = self.posterior(pixels)
         return pixel_posts / np.sum(pixel_posts)
+    
+    def _as_healpix_fast(self, nside, nest=True):
+        """Returns a healpix map of the posterior density, by default in
+        nested order.
+
+        """
+        grid = self._adaptive_grid()
+
+        pcentres, nsides = grid.pixel_centers_nsides()
+        pcentres = np.array(pcentres)
+        pposts = self.posterior(pcentres)
+        
+        map = np.zeros(hp.nside2npix(nside))
+
+        for pc, pp, ns in zip(pcentres, pposts, nsides):
+            if ns > nside:
+                # Then we are extirpolating the posterior to the map
+                i = hp.ang2pix(ns, np.pi/2.0-pc[1], pc[0], nest=True)
+                n = ns
+                while n > nside:
+                    n = n / 2
+                    i = i / 4
+                map[i] += pp*hp.nside2pixarea(ns)/hp.nside2pixarea(nside)
+            else:
+                # We are interpolating the posterior to the map
+                i = hp.ang2pix(ns, np.pi/2.0-pc[1], pc[0], nest=True)
+                ilow = i
+                ihigh = i+1
+                n = ns
+                while n < nside:
+                    n *= 2
+                    ilow *= 4
+                    ihigh = 4*ihigh
+
+                map[ilow:ihigh] = pp
+
+        if nest:
+            pass  # Map is already in nested order
+        else:
+            map = hp.pixelfunc.reorder(map, n2r=True)
+
+        return map / np.sum(map)
+
+    def as_healpix(self, nside, nest=True, fast=True):
+        """Return a healpix map of the posterior at the given resolution.
+
+        :param nside: The resolution parameter.
+
+        :param nest: If ``True``, map is in nested order.
+
+        :param fast: If ``True`` produce a map more quickly, at the
+          cost of some pixellation.
+
+        """
+        if fast:
+            return self._as_healpix_fast(nside, nest=nest)
+        else:
+            return self._as_healpix_slow(nside, nest=nest)
 
     def _fast_area_within(self, levels):
-        pts = self.pts.copy()
-        pts[:,1] = np.arcsin(pts[:,1])
-
-        grid = _Hp_adaptive_grid_pixel(pts)
+        grid = self._adaptive_grid()
 
         pcenters, nsides = grid.pixel_centers_nsides()
         pcenters = np.array(pcenters)

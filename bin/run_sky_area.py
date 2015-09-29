@@ -25,15 +25,12 @@ class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
 
 lsctables.use_in(LIGOLWContentHandler)
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None):
+def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=True):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
 
-    thetas, phis = hp.pix2ang(nside, np.arange(hp.nside2npix(nside), dtype=np.int), nest=nest)
-    pixels = np.column_stack((phis, np.pi/2.0 - thetas))
-
-    pix_post = skypost.posterior(pixels)
+    pix_post = skypost.as_healpix(nside, nest=nest, fast=fast)
 
     fig = pp.figure(frameon=False)
     ax = pp.subplot(111, projection='astro mollweide')
@@ -107,6 +104,8 @@ if __name__ == '__main__':
 
     parser.add_option('--slowskyarea', default=False, action='store_true', help='use a much slower but robust sky area algorithm')
 
+    parser.add_option('--slowsmoothskymaps', default=False, action='store_true', help='use a faster algorithm for producing skymaps (that are "blocky")')
+
     parser.add_option('--enable-distance-map', action='store_true', default=False, help='enable output of healpy map of distance mean and s.d.')
 
     parser.add_option('--nside', type=int, default=512, help='HEALPix resolution [default: %default]')
@@ -175,7 +174,7 @@ if __name__ == '__main__':
         skymap_out = os.path.join(args.outdir, 'skymap.pdf')
     else:
         skymap_out = os.path.join(args.outdir, 'skymap.png')
-    plot_skymap(skymap_out, skypost,inj=injpos)
+    plot_skymap(skymap_out, skypost,inj=injpos, fast=not(args.slowsmoothskymaps))
 
     print('plotting cluster assignments ...')
     if args.pdf:
@@ -198,7 +197,7 @@ if __name__ == '__main__':
     fits_nest = True
 
     if not args.enable_distance_map:
-        hpmap = skypost.as_healpix(args.nside, nest=fits_nest)
+        hpmap = skypost.as_healpix(args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
     else:
         print('Constructing 3D clustered posterior.')
         try:

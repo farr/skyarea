@@ -166,9 +166,22 @@ different point sets are accessible as the <tt class="docutils literal"><span cl
 
 <dl class="method">
 <dt id="sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.as_healpix">
-<tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a healpix map of the posterior density, by default in
-nested order.</p>
+<tt class="descname">as_healpix</tt><big>(</big><em>nside</em>, <em>nest=True</em>, <em>fast=True</em><big>)</big><a class="reference internal" href="_modules/sky_area/sky_area_clustering.html#ClusteredSkyKDEPosterior.as_healpix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sky_area.sky_area_clustering.ClusteredSkyKDEPosterior.as_healpix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a healpix map of the posterior at the given resolution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nside</strong> &#8211; The resolution parameter.</li>
+<li><strong>nest</strong> &#8211; If <tt class="docutils literal"><span class="pre">True</span></tt>, map is in nested order.</li>
+<li><strong>fast</strong> &#8211; If <tt class="docutils literal"><span class="pre">True</span></tt> produce a map more quickly, at the
+cost of some pixellation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
