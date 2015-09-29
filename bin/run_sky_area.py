@@ -58,6 +58,7 @@ def plot_assign(output, skypost):
     pp.savefig(output)
 
 def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True):
+
     if sim_id is None or ra is None or dec is None:
         p_value = 0.0
         levels = cls
