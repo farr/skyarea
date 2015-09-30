@@ -601,6 +601,7 @@ class ClusteredSkyKDEPosterior(object):
           out[-1]=4*np.pi
         return out
 
+
     def searched_area(self, pts, fast=True):
         """Returns the sky area that must be searched using a greedy algorithm
         before encountering the given points in the sky.  If ``fast``,
