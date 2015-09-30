@@ -334,7 +334,7 @@ class ClusteredSkyKDEPosterior(object):
 
             print 'k = ', k, 'ntrials = ', ntrials, 'bic = ', bic
             
-            if bic > best_bic:
+            if bic >= best_bic:
                 best_means = self.means
                 best_assign = self.assign
                 best_bic = bic
