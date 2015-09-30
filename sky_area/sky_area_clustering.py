@@ -729,7 +729,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
             for ipix in range(npix)])
 
         # Normalize marginal probability...
-        # just to be safe. It should be marginalized already.
+        # just to be safe. It should be normalized already.
         prob /= prob.sum()
 
         # Apply method of moments to find location parameter, scale parameter,
