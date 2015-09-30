@@ -208,6 +208,10 @@ if __name__ == '__main__':
             sys.exit(1)
         skypost3d = sac.Clustered3DKDEPosterior(xyz)
 
+        print('pickling ...')
+        with open(os.path.join(args.outdir, 'skypost3d.obj'), 'w') as out:
+            pickle.dump(skypost3d, out)
+
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
     names=data.dtype.names 
