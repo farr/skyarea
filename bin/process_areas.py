@@ -3,18 +3,24 @@
 import bz2
 import glob
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
+
 import matplotlib.pyplot as pp
 from optparse import OptionParser
 import plotutils.plotutils as pu
 import scipy.stats as ss
+import os
 
-parser = OptionParser()
+USAGE='''%prog [options] ev1_areas.dat ev2_areas.dat ... evN_areas.dat
+         Create searched area, sky confidence level, and PP plot using information stored in N areas.dat files, output from run_sky_area.py. If those files are not given, will look in current_dir/I/areas.dat with I in {1..N}'''
+
+parser = OptionParser(USAGE)
 
 parser.add_option('--prefix', default='', help='output file prefix')
 parser.add_option('--noinj', action='store_true', default=False, help='disable injection-dependent processing')
 
 options, args = parser.parse_args()
-
 cls = np.array([0.5, 0.75, 0.9])
 cls_header = ['area({0:d})'.format(int(round(100.0*cl))) for cl in cls]
 
@@ -25,13 +31,24 @@ dtype = np.dtype([('simulation_id', np.str, 250),
                   ('area50', np.float),
                   ('area75', np.float),
                   ('area90', np.float)])
-for file in glob.glob('*/areas.dat'):
+if args==None or len(args)==0:
+  for file in glob.glob('*/areas.dat'):
     data.append(np.loadtxt(file, dtype=dtype, skiprows=1))
+else:
+  for file in args:
+    data.append(np.loadtxt(file, dtype=dtype, skiprows=1))
+
 new_data = np.zeros(len(data), dtype=data[0].dtype)
 for i in range(len(data)):
     new_data[i] = data[i][()]
 data = new_data
 
+options.prefix=os.path.realpath(options.prefix)
+if not options.prefix[-1]=='/':
+  options.prefix+='/'
+print options.prefix
+if not os.path.isdir(options.prefix):
+  os.makedirs(options.prefix)
 with bz2.BZ2File(options.prefix + 'areas.dat.bz2', 'w') as out:
     out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(cls_header) + '\n')
     for d in data:
@@ -41,7 +58,6 @@ with bz2.BZ2File(options.prefix + 'areas.dat.bz2', 'w') as out:
                                                                       d['area50'],
                                                                       d['area75'],
                                                                       d['area90']))
-
 if not options.noinj:
     ks_stat, ks_p = ss.kstest(data['p_value'], lambda x: x)
 
@@ -52,13 +68,13 @@ if not options.noinj:
     pp.ylabel(r'$P(p_\mathrm{inj})$')
     pp.title('K-S p-value {0:g}'.format(ks_p))
     pp.savefig(options.prefix + 'p-p.pdf')
+    pp.savefig(options.prefix + 'p-p.png')
 
     pp.clf()
     pu.plot_cumulative_distribution(data['searched_area'], '-k')
     pp.xscale('log')
     pp.xlabel(r'Searched Area (deg$^2$)')
     pp.savefig(options.prefix + 'searched-area.pdf')
-
 pp.clf()
 pu.plot_cumulative_distribution(data['area50'], label=str('50\%'))
 pu.plot_cumulative_distribution(data['area75'], label=str('75\%'))
