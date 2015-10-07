@@ -44,12 +44,11 @@ for i in range(len(data)):
 data = new_data
 
 options.prefix=os.path.realpath(options.prefix)
-if not options.prefix[-1]=='/':
-  options.prefix+='/'
-print options.prefix
+
 if not os.path.isdir(options.prefix):
   os.makedirs(options.prefix)
-with bz2.BZ2File(options.prefix + 'areas.dat.bz2', 'w') as out:
+
+with bz2.BZ2File(os.path.join(options.prefix, 'areas.dat.bz2'), 'w') as out:
     out.write('simulation_id\tp_value\tsearched_area\t' + '\t'.join(cls_header) + '\n')
     for d in data:
         out.write('{0:s}\t{1:g}\t{2:g}\t{3:g}\t{4:g}\t{5:g}\n'.format(d['simulation_id'],
@@ -67,14 +66,14 @@ if not options.noinj:
     pp.xlabel(r'$p_\mathrm{inj}$')
     pp.ylabel(r'$P(p_\mathrm{inj})$')
     pp.title('K-S p-value {0:g}'.format(ks_p))
-    pp.savefig(options.prefix + 'p-p.pdf')
-    pp.savefig(options.prefix + 'p-p.png')
+    pp.savefig(os.path.join(options.prefix, 'p-p.pdf'))
+    pp.savefig(os.path.join(options.prefix, 'p-p.png'))
 
     pp.clf()
     pu.plot_cumulative_distribution(data['searched_area'], '-k')
     pp.xscale('log')
     pp.xlabel(r'Searched Area (deg$^2$)')
-    pp.savefig(options.prefix + 'searched-area.pdf')
+    pp.savefig(os.path.join(options.prefix, 'searched-area.pdf'))
 pp.clf()
 pu.plot_cumulative_distribution(data['area50'], label=str('50\%'))
 pu.plot_cumulative_distribution(data['area75'], label=str('75\%'))
@@ -82,4 +81,4 @@ pu.plot_cumulative_distribution(data['area90'], label=str('90\%'))
 pp.xscale('log')
 pp.xlabel(r'Credible Area (deg$^2$)')
 pp.legend(loc='upper left')
-pp.savefig(options.prefix + 'credible-area.pdf')
+pp.savefig(os.path.join(options.prefix, 'credible-area.pdf'))

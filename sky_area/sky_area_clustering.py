@@ -583,11 +583,11 @@ class ClusteredSkyKDEPosterior(object):
         """
         cls = np.atleast_1d(cls)
         idxs=[int(round(cl*self.ranking_pts.shape[0])) for cl in cls]
-        missed=0
+        missed=False
         if idxs[-1]==len(self.greedy_posteriors):
           # this can happen if the injected position is totally missed
           idxs[-1]-=1
-          missed=1
+          missed=True
 
         post_levels = [self.greedy_posteriors[i] for i in idxs]
 
