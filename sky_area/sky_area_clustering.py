@@ -582,13 +582,25 @@ class ClusteredSkyKDEPosterior(object):
 
         """
         cls = np.atleast_1d(cls)
+        idxs=[int(round(cl*self.ranking_pts.shape[0])) for cl in cls]
+        missed=False
+        if idxs[-1]==len(self.greedy_posteriors):
+          # this can happen if the injected position is totally missed
+          idxs[-1]-=1
+          missed=True
 
-        post_levels = [self.greedy_posteriors[int(round(cl*self.ranking_pts.shape[0]))] for cl in cls]
+        post_levels = [self.greedy_posteriors[i] for i in idxs]
 
         if fast:
-            return self._fast_area_within(post_levels)
+            out=self._fast_area_within(post_levels)
         else:
-            return self._area_within(post_levels)
+            out=self._area_within(post_levels)
+
+        if missed:
+          # if missed set the searched are to be the whole sky
+          out[-1]=4*np.pi
+        return out
+
 
     def searched_area(self, pts, fast=True):
         """Returns the sky area that must be searched using a greedy algorithm
