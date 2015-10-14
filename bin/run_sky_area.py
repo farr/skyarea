@@ -5,6 +5,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 
 from optparse import OptionParser
+from distutils.dir_util import mkpath
 from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
@@ -141,10 +142,7 @@ if __name__ == '__main__':
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
 
-    try:
-        os.makedirs(args.outdir)
-    except:
-        pass
+    mkpath(args.outdir)
 
     print('pickling ...')
     with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
