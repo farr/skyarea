@@ -128,16 +128,7 @@ if __name__ == '__main__':
         pts = np.random.permutation(pts)[:args.maxpts, :]
 
     if args.loadpost is None:
-        for i in range(args.trials):
-            try:
-                skypost = sac.ClusteredSkyKDEPosterior(pts)
-                break
-            except:
-                skypost = None
-                continue
-        if skypost is None:
-            print('Could not generate sky posterior')
-            exit(1)
+        skypost = sac.ClusteredSkyKDEPosterior(pts, ntrials=args.trials)
     else:
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
