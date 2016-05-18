@@ -273,17 +273,9 @@ class ClusteredSkyKDEPosterior(object):
 
             high_k = 2*mid_k
             while True:
-                try:
-                    high_bic = self._set_up_optimal_kmeans(high_k, self.ntrials)
-                    high_means = self.means
-                    high_assign = self.assign
-                except:
-                    high_k = mid_k + (high_k - mid_k)/2
-                    if high_k >= mid_k + 1:
-                        continue
-                    else:
-                        raise
-                break
+                high_bic = self._set_up_optimal_kmeans(high_k, self.ntrials)
+                high_means = self.means
+                high_assign = self.assign
 
         while high_k - low_k > 2:
             print 'shrinking ks: ', (low_k, mid_k, high_k)
