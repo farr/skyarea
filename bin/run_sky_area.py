@@ -209,6 +209,8 @@ if __name__ == '__main__':
             import sys
             sys.exit(1)
         xyz = np.column_stack((data['ra'], data['dec'], dist))
+        if args.maxpts is not None:
+            xyz = np.random.permutation(xyz)[:args.maxpts, :]
         skypost3d = sac.Clustered3DKDEPosterior(xyz, ntrials=args.trials)
 
         print('pickling ...')
