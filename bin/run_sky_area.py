@@ -200,12 +200,16 @@ if __name__ == '__main__':
     else:
         print('Constructing 3D clustered posterior.')
         try:
-            xyz = np.column_stack((data['ra'], data['dec'], data['dist']))
+            try:
+                dist = data['dist']
+            except ValueError:
+                dist = data['distance']
         except ValueError:
             print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
             import sys
             sys.exit(1)
-        skypost3d = sac.Clustered3DKDEPosterior(xyz)
+        xyz = np.column_stack((data['ra'], data['dec'], dist))
+        skypost3d = sac.Clustered3DKDEPosterior(xyz, ntrials=args.trials)
 
         print('pickling ...')
         with open(os.path.join(args.outdir, 'skypost3d.obj'), 'w') as out:
