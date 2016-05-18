@@ -16,6 +16,7 @@ from lalinference import plot
 import healpy as hp
 import numpy as np
 import os
+import sys
 import pickle
 import sky_area.sky_area_clustering as sac
 
@@ -137,7 +138,7 @@ if __name__ == '__main__':
                 continue
         if skypost is None:
             print('Could not generate sky posterior')
-            exit(1)
+            sys.exit(1)
     else:
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
@@ -206,7 +207,6 @@ if __name__ == '__main__':
                 dist = data['distance']
         except ValueError:
             print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
-            import sys
             sys.exit(1)
         xyz = np.column_stack((data['ra'], data['dec'], dist))
         skypost3d = sac.Clustered3DKDEPosterior(xyz, ntrials=args.trials)
@@ -226,7 +226,7 @@ if __name__ == '__main__':
       gps_time=data['time_maxl'].mean()
     else:
       print("Cannot find time, time_mean, or time maxl variable in posterior. Not saving sky_pos obj.\n")
-      exit(0)
+      sys.exit(0)
 
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
                        hpmap, creator=parser.get_prog_name(),
