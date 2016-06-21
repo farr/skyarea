@@ -35,7 +35,7 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=
     pix_post = skypost.as_healpix(nside, nest=nest, fast=fast)
 
     fig = pp.figure(frameon=False)
-    ax = pp.subplot(111, projection='astro mollweide')
+    ax = pp.subplot(111, projection='astro hours mollweide')
     ax.cla()
     ax.grid()
     plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=pp.get_cmap('cylon'))
