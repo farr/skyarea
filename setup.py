@@ -4,7 +4,7 @@ setup(
     name='skyarea',
     packages=['sky_area'],
     scripts=['bin/make_search_map.py', 'bin/process_areas.py', 'bin/run_sky_area.py'],
-    version='1.0',
+    version='0.1',
     description='Code for computing credible regions on the sky from RA-DEC MCMC samples.',
     author='Will M. Farr',
     author_email='will.farr@ligo.org',
