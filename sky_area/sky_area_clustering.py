@@ -4,6 +4,9 @@ import numpy as np
 import numpy.linalg as nl
 import scipy.integrate as si
 from scipy.stats import gaussian_kde
+from lalinference.bayestar import distance
+from lalinference.bayestar.postprocess import (
+    HEALPIX_MACHINE_ORDER, HEALPIX_MACHINE_NSIDE, HEALPixTree)
 
 def km_assign(mus, cov, pts):
     """Implements the assignment step in the k-means algorithm.  Given a
@@ -440,11 +443,11 @@ class ClusteredSkyKDEPosterior(object):
 
             return zip(lows, highs)
 
-    def _adaptive_grid(self):
-        pts = self.pts.copy()
-        pts[:,1] = np.arcsin(pts[:,1])
-
-        return _Hp_adaptive_grid_pixel(pts)
+    def _adaptive_grid(self, order=HEALPIX_MACHINE_ORDER):
+        theta = np.arccos(self.pts[:, 1])
+        phi = self.pts[:, 0]
+        ipix = hp.ang2pix(HEALPIX_MACHINE_NSIDE, theta, phi, nest=True).astype(np.uint64)
+        return HEALPixTree(ipix, max_samples_per_pixel=1, max_order=order)
 
     def _as_healpix_slow(self, nside, nest=True):
         npix = hp.nside2npix(nside)
@@ -458,35 +461,18 @@ class ClusteredSkyKDEPosterior(object):
         nested order.
 
         """
-        grid = self._adaptive_grid()
+        order = hp.nside2order(nside)
+        npix = hp.nside2npix(nside)
+        map = np.empty(hp.nside2npix(nside))
+        grid = self._adaptive_grid(order)
 
-        pcentres, nsides = grid.pixel_centers_nsides()
-        pcentres = np.array(pcentres)
-        pposts = self.posterior(pcentres)
-        
-        map = np.zeros(hp.nside2npix(nside))
-
-        for pc, pp, ns in zip(pcentres, pposts, nsides):
-            if ns > nside:
-                # Then we are extirpolating the posterior to the map
-                i = hp.ang2pix(ns, np.pi/2.0-pc[1], pc[0], nest=True)
-                n = ns
-                while n > nside:
-                    n = n / 2
-                    i = i / 4
-                map[i] += pp*hp.nside2pixarea(ns)/hp.nside2pixarea(nside)
-            else:
-                # We are interpolating the posterior to the map
-                i = hp.ang2pix(ns, np.pi/2.0-pc[1], pc[0], nest=True)
-                ilow = i
-                ihigh = i+1
-                n = ns
-                while n < nside:
-                    n *= 2
-                    ilow *= 4
-                    ihigh = 4*ihigh
-
-                map[ilow:ihigh] = pp
+        nside, ipix, ipix0, ipix1 = zip(*[(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _ in grid.visit()])
+        theta, phi = hp.pix2ang(nside, ipix, nest=True)
+        ra = phi
+        dec = 0.5 * np.pi - theta
+        post = self.posterior(np.column_stack((ra, dec)))
+        for ipix0, ipix1, ppost in zip(ipix0, ipix1, post):
+            map[ipix0:ipix1] = ppost
 
         if nest:
             pass  # Map is already in nested order
@@ -514,10 +500,12 @@ class ClusteredSkyKDEPosterior(object):
     def _fast_area_within(self, levels):
         grid = self._adaptive_grid()
 
-        pcenters, nsides = grid.pixel_centers_nsides()
-        pcenters = np.array(pcenters)
-        pareas = np.array([hp.nside2pixarea(ns) for ns in nsides])
-        plevels = self.posterior(pcenters)
+        nside, ipix = zip(*[(nside, ipix) for nside, _, ipix, _, _, _ in grid.visit()])
+        theta, phi = hp.pix2ang(nside, ipix, nest=True)
+        ra = phi
+        dec = 0.5 * np.pi - theta
+        plevels = self.posterior(np.column_stack((ra, dec)))
+        pareas = np.asarray([hp.nside2pixarea(ns) for ns in nside])
 
         areas = []
         for l in levels:
@@ -633,7 +621,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
     """
 
-    def __init__(self, pts, ntrials=5, means=None, assign=None):
+    def __init__(self, pts, ntrials=5, means=None, assign=None, acc=1e-2):
         """Initialise the posterior object.
 
         :param pts: A ``(npts, 3)`` shaped array.  The first column is
@@ -646,15 +634,18 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         :param assign: If given, use these assignments for the clustering.
         """
-        
-        xyzpts = self._pts_to_xyzpts(pts)
-        
-        self._pts = xyzpts
+        self._acc = acc
 
-        ppts = np.random.permutation(xyzpts)
+        pts = pts.copy()
+        _pts = pts.copy()[:, :-1]
+        _pts[:,1] = np.sin(_pts[:,1])
+        self._pts = _pts
 
-        self._kde_pts = ppts[::2]
-        self._ranking_pts = ppts[1::2]
+        indices = np.arange(len(pts))
+        np.random.shuffle(indices)
+
+        self._kde_pts = self._pts_to_xyzpts(pts[indices][::2])
+        self._ranking_pts = _pts[indices][1::2]
         self._ntrials = ntrials
 
         if means is None or assign is None:
@@ -664,7 +655,9 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         self._set_up_greedy_order()
 
-    def _pts_to_xyzpts(self, pts):
+
+    @staticmethod
+    def _pts_to_xyzpts(pts):
         ras = pts[:,0]
         decs = pts[:,1]
         ds = pts[:,2]
@@ -676,80 +669,29 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         return xyzpts
 
 
-    def _set_up_greedy_order(self):
-        pts = self.ranking_pts.copy()
-
-        posts = self.posterior(pts)
-        self._greedy_order = np.argsort(posts)[::-1]
-        self._greedy_posteriors = posts[self.greedy_order]
-
     def posterior(self, pts):
         """Given an array of positions in RA, DEC, dist, compute the 3D
         volumetric posterior density (per Mpc) at those points. 
 
         """
-        
-        pts = np.atleast_2d(pts)
 
-        xyzpts = self._pts_to_xyzpts(pts)
-
-        return self._posterior(xyzpts)
-
-    def _bic(self):
-        ndim = self.kde_pts.shape[1]
-        npts = self.kde_pts.shape[0]
-
-        nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
-
-        xyzpts = self.kde_pts
-        ds = np.sqrt(np.sum(np.square(xyzpts), axis=1))
-        ras = np.arctan2(xyzpts[:,1], xyzpts[:,0])
-        sin_dec = xyzpts[:,2] / ds
-        dec = np.arcsin(sin_dec)
-
-        pts = np.column_stack((ras, dec, ds))
-        
-        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
-
-    def as_healpix(self, nside, nest=True):
-        r"""Returns a healpix map with the mean and standard deviations
-        of :math:`d` for any pixel containing at least one posterior
-        sample. 
-
-        """
-        from lalinference.bayestar import distance
-
-        npix = hp.nside2npix(nside)
         datasets = [kde.dataset for kde in self.kdes]
         inverse_covariances = [kde.inv_cov for kde in self.kdes]
         weights = self.weights
 
-        # Compute marginal probability, conditional mean, and conditional
-        # standard deviation in all directions.
-        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
-            np.asarray(hp.pix2vec(nside, ipix, nest=nest)),
-            datasets, inverse_covariances, weights)
-            for ipix in range(npix)])
+        pts = np.column_stack((pts, np.ones(len(pts))))
 
-        # Normalize marginal probability...
-        # just to be safe. It should be normalized already.
-        prob /= prob.sum()
+        prob, _, _ = np.transpose([distance.cartesian_kde_to_moments(
+            n, datasets, inverse_covariances, weights)
+            for n in self._pts_to_xyzpts(pts)])
 
-        # Apply method of moments to find location parameter, scale parameter,
-        # and normalization.
-        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
+        return prob
 
-        # Done!
-        return prob, distmu, distsigma, distnorm
+    def posterior_cartesian(self, pts):
+        return self._posterior(pts)
 
-    def sky_area(self, cls):
-        raise NotImplementedError
-
-    def searched_area(self, pts):
-        raise NotImplementedError
-
-    def p_values(self, pts):
-        raise NotImplementedError
+    def posterior_spherical(self, pts):
+        return self.posterior_cartesian(self._pts_to_xyzpts(pts))
 
     def conditional_posterior(self, ra, dec, ds):
         """Returns a slice through the smoothed posterior at the given
@@ -764,72 +706,106 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         pts = np.column_stack((ras, decs, ds))
 
-        return self.posterior(pts)
+        return self.posterior_spherical(pts)
 
-class _Hp_adaptive_grid_pixel(object):
-    def __init__(self, pts, ipix=None, nside=None):
-        self._ipix = ipix
-        self._nside = nside
-        self._pts = pts
-        
-        if len(pts) <= 1 or nside >= 1<<29:
-            # Stop here.  Either there is only one point left, or we
-            # are in danger of exceeding the healpy limit on nside
-            self._sub_grids = None
-        elif ipix is None or nside is None:
-            nside = 1
-            sub_ipts = [hp.ang2pix(1, np.pi/2.0-pt[1], pt[0], nest=True) for pt in pts]
-            sub_grids = []
-            for i in range(12):
-                subp = [pt for pt, ipt in zip(pts, sub_ipts) if ipt == i]
-                sub_grids.append(_Hp_adaptive_grid_pixel(subp, i, 1))
-                
-            self._sub_grids = sub_grids
+    def _bic(self):
+        """Returns the BIC for the point set being drawn from the clustered
+        KDE.
+
+        """
+
+        ndim = self.kde_pts.shape[1]
+        npts = self.kde_pts.shape[0]
+
+        # The number of parameters is:
+        #
+        # * ndim for each centroid location
+        # 
+        # * (ndim+1)*ndim/2 Kernel covariances for each cluster
+        #
+        # * one weighting factor for the cluster (minus one for the
+        #   overall constraint that the weights must sum to one)
+        nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
+
+        pts = self.kde_pts.copy()
+
+        return np.sum(np.log(self.posterior_cartesian(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
+
+    def _as_healpix_slow(self, nside, nest=True):
+        r"""Returns a healpix map with the mean and standard deviations
+        of :math:`d` for any pixel containing at least one posterior
+        sample. 
+
+        """
+        npix = hp.nside2npix(nside)
+        pixarea = hp.nside2pixarea(nside)
+        datasets = [kde.dataset for kde in self.kdes]
+        inverse_covariances = [kde.inv_cov for kde in self.kdes]
+        weights = self.weights
+
+        # Compute marginal probability, conditional mean, and conditional
+        # standard deviation in all directions.
+        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
+            np.asarray(hp.pix2vec(nside, ipix, nest=nest)),
+            datasets, inverse_covariances, weights)
+            for ipix in range(npix)])
+
+        prob *= pixarea
+        # Normalize marginal probability...
+        # just to be safe. It should be normalized already.
+        prob /= prob.sum()
+
+        # Apply method of moments to find location parameter, scale parameter,
+        # and normalization.
+        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
+
+        # Done!
+        return prob, distmu, distsigma, distnorm
+
+    def _as_healpix_fast(self, nside, nest=True):
+        """Returns a healpix map of the posterior density, by default in
+        nested order.
+
+        """
+        order = hp.nside2order(nside)
+        npix = hp.nside2npix(nside)
+        pixarea = hp.nside2pixarea(nside)
+        map = [np.empty(npix), np.empty(npix), np.empty(npix), np.empty(npix)]
+        grid = self._adaptive_grid(order)
+
+        nside, ipix, ipix0, ipix1 = zip(*[(nside, ipix, ipix0, ipix1)
+            for nside, _, ipix, ipix0, ipix1, _ in grid.visit()])
+        pts = np.transpose(hp.pix2vec(nside, ipix, nest=True))
+
+        datasets = [kde.dataset for kde in self.kdes]
+        inverse_covariances = [kde.inv_cov for kde in self.kdes]
+        weights = self.weights
+
+        # Compute marginal probability, conditional mean, and conditional
+        # standard deviation in all directions.
+        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
+            pt, datasets, inverse_covariances, weights)
+            for pt in pts])
+
+        # Apply method of moments to find location parameter, scale parameter,
+        # and normalization.
+        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
+
+        for ipix0, ipix1, prob, distmu, distsigma, distnorm in zip(
+                    ipix0, ipix1, prob, distmu, distsigma, distnorm):
+            map[0][ipix0:ipix1] = prob
+            map[1][ipix0:ipix1] = distmu
+            map[2][ipix0:ipix1] = distsigma
+            map[3][ipix0:ipix1] = distnorm
+
+        map[0] *= pixarea
+        # Normalize marginal probability...
+        # just to be safe. It should be normalized already.
+        map[0] /= map[0].sum()
+
+        if nest:
+            pass  # Map is already in nested order
         else:
-            sub_ipix = [4*ipix + i for i in range(4)]
-            sub_nside = 2*nside
-            sub_ipts = [hp.ang2pix(sub_nside, np.pi/2.0 - pt[1], pt[0], nest=True) for pt in pts]
+            map = hp.pixelfunc.reorder(map, n2r=True)
 
-            sub_grids = []
-            for sip in sub_ipix:
-                subp = [pt for pt, ipt in zip(pts, sub_ipts) if ipt == sip]
-                sub_grids.append(_Hp_adaptive_grid_pixel(subp, sip, sub_nside))
-
-            self._sub_grids = sub_grids
-
-    @property
-    def ipix(self):
-        return self._ipix
-    @property
-    def nside(self):
-        return self._nside
-    @property
-    def pts(self):
-        return self._pts
-    @property
-    def sub_grids(self):
-        return self._sub_grids
-
-    def pixel_centers_nsides(self):
-        if self.sub_grids is not None:
-            pcs = []
-            nss = []
-            for sg in self.sub_grids:
-                pc, ns = sg.pixel_centers_nsides()
-                pcs.extend(pc)
-                nss.extend(ns)
-            return pcs, nss
-        else:
-            theta, phi = hp.pix2ang(self.nside, self.ipix, nest=True)
-            return [np.array([phi, np.pi/2-theta])], [self.nside]
-
-    
-
-def adaptive_grid_pixel_centers_nsides(pts):
-    # Protect against repeated values
-    ura, uind = np.unique(pts[:,0], return_index=True)
-    pts = pts[uind,:]
-
-    grid = _Hp_adaptive_grid_pixel(pts)
-
-    return grid.pixel_centers_nsides()
+        return map

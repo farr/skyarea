@@ -35,6 +35,10 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=
 
     pix_post = skypost.as_healpix(nside, nest=nest, fast=fast)
 
+    # Discard distance layers if this is a 3D HEALPix map.
+    if np.ndim(pix_post) > 1:
+        pix_post = pix_post[0]
+
     fig = pp.figure(frameon=False)
     ax = pp.subplot(111, projection='astro hours mollweide')
     ax.cla()
@@ -124,13 +128,28 @@ if __name__ == '__main__':
         np.random.seed(args.seed)
 
     data = np.recfromtxt(args.samples, names=True)
-    pts = np.column_stack((data['ra'], data['dec']))
+
+    if args.enable_distance_map:
+        try:
+            try:
+                dist = data['dist']
+            except ValueError:
+                dist = data['distance']
+        except ValueError:
+            parser.error(
+                "The posterior samples file '{0}' does not have a distance "
+                "column. Cannot generate distance map.".format(args.samples))
+        pts = np.column_stack((data['ra'], data['dec'], dist))
+        KDEClass = sac.Clustered3DKDEPosterior
+    else:
+        pts = np.column_stack((data['ra'], data['dec']))
+        KDEClass = sac.ClusteredSkyKDEPosterior
 
     if args.maxpts is not None:
         pts = np.random.permutation(pts)[:args.maxpts, :]
 
     if args.loadpost is None:
-        skypost = sac.ClusteredSkyKDEPosterior(pts, ntrials=args.trials)
+        skypost = KDEClass(pts, ntrials=args.trials)
     else:
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
@@ -188,34 +207,15 @@ if __name__ == '__main__':
 
     fits_nest = True
 
-    if not args.enable_distance_map:
-        hpmap = skypost.as_healpix(args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
-        distmean = None
-        diststd = None
-    else:
-        print('Constructing 3D clustered posterior.')
-        try:
-            try:
-                dist = data['dist']
-            except ValueError:
-                dist = data['distance']
-        except ValueError:
-            print("ERROR, cannot use skypost3d with LIB output. Exiting..\n")
-            sys.exit(1)
-        xyz = np.column_stack((data['ra'], data['dec'], dist))
-        if args.maxpts is not None:
-            xyz = np.random.permutation(xyz)[:args.maxpts, :]
-        skypost3d = sac.Clustered3DKDEPosterior(xyz, ntrials=args.trials)
-
-        print('pickling ...')
-        with open(os.path.join(args.outdir, 'skypost3d.obj'), 'w') as out:
-            pickle.dump(skypost3d, out)
-
-        print('Producing distance map')
-        hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
+    hpmap = skypost.as_healpix(args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
+    if args.enable_distance_map:
         prob, distmu, distsigma, _ = hpmap
         distmean, diststd = distance.parameters_to_marginal_moments(
             prob, distmu, distsigma)
+    else:
+        distmean = None
+        diststd = None
+
     names=data.dtype.names
     if 'time' in names:
       gps_time=data['time'].mean()
