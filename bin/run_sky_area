@@ -13,6 +13,7 @@ from glue.ligolw import utils
 import lalinference.cmap
 from lalinference import fits
 from lalinference import plot
+from lalinference.bayestar import distance
 import healpy as hp
 import numpy as np
 import os
@@ -189,6 +190,8 @@ if __name__ == '__main__':
 
     if not args.enable_distance_map:
         hpmap = skypost.as_healpix(args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
+        distmean = None
+        diststd = None
     else:
         print('Constructing 3D clustered posterior.')
         try:
@@ -210,7 +213,10 @@ if __name__ == '__main__':
 
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
-    names=data.dtype.names 
+        prob, distmu, distsigma, _ = hpmap
+        distmean, diststd = distance.parameters_to_marginal_moments(
+            prob, distmu, distsigma)
+    names=data.dtype.names
     if 'time' in names:
       gps_time=data['time'].mean()
     elif 'time_mean' in names:
@@ -224,4 +230,5 @@ if __name__ == '__main__':
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
                        hpmap, creator=parser.get_prog_name(),
                        objid=args.objid, gps_time=gps_time,
+                       distmean=distmean, diststd=diststd,
                        nest=fits_nest)
