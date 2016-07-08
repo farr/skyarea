@@ -725,7 +725,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         dmin = np.min(ptsds)
         dmax = np.max(ptsds)
 
-        nquad = 100
+        nquad = 25
         ds = np.logspace(np.log10(dmin), np.log10(dmax), nquad)
         dA = hp.nside2pixarea(nside)
 
@@ -751,7 +751,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
                 if std[i] > 0.0:
                     a = max(0, mean[i]-5.0*std[i])
                     b = mean[i] + 5.0*std[i]
-                    xs = np.linspace(a, b, 100)
+                    xs = np.linspace(a, b, nquad)
                     ys = 1.0/np.sqrt(2.0*np.pi)/std[i]*np.exp(-0.5*(xs-mean[i])*(xs-mean[i])/std[i]/std[i])
                     norm[i] = 1.0/np.trapz(ys, xs)
                 else:
