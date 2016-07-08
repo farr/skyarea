@@ -720,27 +720,51 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         from lalinference.bayestar import distance
 
         npix = hp.nside2npix(nside)
-        datasets = [kde.dataset for kde in self.kdes]
-        inverse_covariances = [kde.inv_cov for kde in self.kdes]
-        weights = self.weights
 
-        # Compute marginal probability, conditional mean, and conditional
-        # standard deviation in all directions.
-        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
-            np.asarray(hp.pix2vec(nside, ipix, nest=nest)),
-            datasets, inverse_covariances, weights)
-            for ipix in range(npix)])
+        ptsds = np.sqrt(np.sum(self.pts*self.pts, axis=1))
+        dmin = np.min(ptsds)
+        dmax = np.max(ptsds)
 
-        # Normalize marginal probability...
-        # just to be safe. It should be normalized already.
-        prob /= prob.sum()
+        nquad = 100
+        ds = np.logspace(np.log10(dmin), np.log10(dmax), nquad)
+        dA = hp.nside2pixarea(nside)
 
-        # Apply method of moments to find location parameter, scale parameter,
-        # and normalization.
-        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
+        prob = np.zeros(npix)
+        mean = np.zeros(npix)
+        std = np.zeros(npix)
+        norm = np.zeros(npix)
 
-        # Done!
-        return prob, distmu, distsigma, distnorm
+        for i in range(npix):
+            theta, phi = hp.pix2ang(nside, i, nest=nest)
+            ra = phi
+            dec = np.pi/2.0 - theta
+
+            posts = self.conditional_posterior(ra, dec, ds)
+            dprobs = posts*dA*ds*ds
+
+            prob[i] = np.trapz(dprobs, ds)
+
+            if prob[i] > 0.0:
+                mean[i] = np.trapz(dprobs*ds, ds) / prob[i]
+                std[i] = np.sqrt(np.trapz(dprobs*(ds - mean[i])*(ds - mean[i]), ds) / prob[i])
+
+                if std[i] > 0.0:
+                    a = max(0, mean[i]-5.0*std[i])
+                    b = mean[i] + 5.0*std[i]
+                    xs = np.linspace(a, b, 100)
+                    ys = 1.0/np.sqrt(2.0*np.pi)/std[i]*np.exp(-0.5*(xs-mean[i])*(xs-mean[i])/std[i]/std[i])
+                    norm[i] = 1.0/np.trapz(ys, xs)
+                else:
+                    norm[i] = 1.0
+            else:
+                mean[i] = 0.0
+                std[i] = 0.0
+                norm[i] = 1.0
+                
+        # Renomalize probabilities to sum to one:
+        prob /= np.sum(prob)
+
+        return prob, mean, std, norm
 
     def sky_area(self, cls):
         raise NotImplementedError

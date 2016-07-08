@@ -213,9 +213,8 @@ if __name__ == '__main__':
 
         print('Producing distance map')
         hpmap = skypost3d.as_healpix(args.nside, nest=fits_nest)
-        prob, distmu, distsigma, _ = hpmap
-        distmean, diststd = distance.parameters_to_marginal_moments(
-            prob, distmu, distsigma)
+        distmean = np.mean(dist)
+        diststd = np.std(dist)
     names=data.dtype.names
     if 'time' in names:
       gps_time=data['time'].mean()
