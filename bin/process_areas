@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 
-import matplotlib.pyplot as pp
+import matplotlib.pyplot as plt
 from optparse import OptionParser
 import plotutils.plotutils as pu
 import scipy.stats as ss
@@ -60,25 +60,25 @@ with bz2.BZ2File(os.path.join(options.prefix, 'areas.dat.bz2'), 'w') as out:
 if not options.noinj:
     ks_stat, ks_p = ss.kstest(data['p_value'], lambda x: x)
 
-    pp.clf()
+    plt.clf()
     pu.plot_cumulative_distribution(data['p_value'], '-k')
-    pp.plot(np.linspace(0,1,10), np.linspace(0,1,10), '--k')
-    pp.xlabel(r'$p_\mathrm{inj}$')
-    pp.ylabel(r'$P(p_\mathrm{inj})$')
-    pp.title('K-S p-value {0:g}'.format(ks_p))
-    pp.savefig(os.path.join(options.prefix, 'p-p.pdf'))
-    pp.savefig(os.path.join(options.prefix, 'p-p.png'))
+    plt.plot(np.linspace(0,1,10), np.linspace(0,1,10), '--k')
+    plt.xlabel(r'$p_\mathrm{inj}$')
+    plt.ylabel(r'$P(p_\mathrm{inj})$')
+    plt.title('K-S p-value {0:g}'.format(ks_p))
+    plt.savefig(os.path.join(options.prefix, 'p-p.pdf'))
+    plt.savefig(os.path.join(options.prefix, 'p-p.png'))
 
-    pp.clf()
+    plt.clf()
     pu.plot_cumulative_distribution(data['searched_area'], '-k')
-    pp.xscale('log')
-    pp.xlabel(r'Searched Area (deg$^2$)')
-    pp.savefig(os.path.join(options.prefix, 'searched-area.pdf'))
-pp.clf()
+    plt.xscale('log')
+    plt.xlabel(r'Searched Area (deg$^2$)')
+    plt.savefig(os.path.join(options.prefix, 'searched-area.pdf'))
+plt.clf()
 pu.plot_cumulative_distribution(data['area50'], label=str('50\%'))
 pu.plot_cumulative_distribution(data['area75'], label=str('75\%'))
 pu.plot_cumulative_distribution(data['area90'], label=str('90\%'))    
-pp.xscale('log')
-pp.xlabel(r'Credible Area (deg$^2$)')
-pp.legend(loc='upper left')
-pp.savefig(os.path.join(options.prefix, 'credible-area.pdf'))
+plt.xscale('log')
+plt.xlabel(r'Credible Area (deg$^2$)')
+plt.legend(loc='upper left')
+plt.savefig(os.path.join(options.prefix, 'credible-area.pdf'))

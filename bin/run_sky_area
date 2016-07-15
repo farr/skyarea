@@ -21,7 +21,7 @@ import sys
 import pickle
 import sky_area.sky_area_clustering as sac
 
-import matplotlib.pyplot as pp
+import matplotlib.pyplot as plt
 
 class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
     pass
@@ -39,30 +39,30 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=
     if np.ndim(pix_post) > 1:
         pix_post = pix_post[0]
 
-    fig = pp.figure(frameon=False)
-    ax = pp.subplot(111, projection='astro hours mollweide')
+    fig = plt.figure(frameon=False)
+    ax = plt.subplot(111, projection='astro hours mollweide')
     ax.cla()
     ax.grid()
-    plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=pp.get_cmap('cylon'))
+    plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=plt.get_cmap('cylon'))
 
     if inj is not None:
         # If using an injection file, also plot an X at the true position
-        pp.plot(inj['ra'], inj['dec'], 'kx', ms=30, mew=1)
+        plt.plot(inj['ra'], inj['dec'], 'kx', ms=30, mew=1)
 
-    pp.savefig(output)
+    plt.savefig(output)
 
 def plot_assign(output, skypost):
     k = skypost.k
 
-    pp.clf()
+    plt.clf()
     for i in range(k):
         sel = skypost.assign == i
-        pp.plot(skypost.kde_pts[sel, 0], skypost.kde_pts[sel, 1], ',')
+        plt.plot(skypost.kde_pts[sel, 0], skypost.kde_pts[sel, 1], ',')
 
-    pp.xlabel(r'$\alpha$')
-    pp.ylabel(r'$\sin \delta$')
+    plt.xlabel(r'$\alpha$')
+    plt.ylabel(r'$\sin \delta$')
 
-    pp.savefig(output)
+    plt.savefig(output)
 
 def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True):
 
