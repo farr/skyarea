@@ -1,3 +1,4 @@
+from __future__ import print_function
 import bisect as bs
 import healpy as hp
 import numpy as np
@@ -272,8 +273,8 @@ class ClusteredSkyKDEPosterior(object):
         low_k, mid_k, high_k = 1, 2, 4
 
         while high_bic > mid_bic:
-            print 'extending ks: ', (low_k, mid_k, high_k)
-            print 'with bics: ', (low_bic, mid_bic, high_bic)
+            print('extending ks: ', (low_k, mid_k, high_k))
+            print('with bics: ', (low_bic, mid_bic, high_bic))
 
             low_k, mid_k = mid_k, high_k
             low_bic, mid_bic = mid_bic, high_bic
@@ -286,8 +287,8 @@ class ClusteredSkyKDEPosterior(object):
             high_assign = self.assign
 
         while high_k - low_k > 2:
-            print 'shrinking ks: ', (low_k, mid_k, high_k)
-            print 'with bics: ', (low_bic, mid_bic, high_bic)
+            print('shrinking ks: ', (low_k, mid_k, high_k))
+            print('with bics: ', (low_bic, mid_bic, high_bic))
 
             if high_k - mid_k > mid_k - low_k:
                 k = mid_k + (high_k - mid_k)/2
@@ -322,7 +323,7 @@ class ClusteredSkyKDEPosterior(object):
                     low_means = means
                     low_assign = assign
 
-        print 'Found best k, BIC: ', mid_k, mid_bic
+        print('Found best k, BIC: ', mid_k, mid_bic)
         self._set_up_kmeans(mid_k, mid_means, mid_assign)
 
     def _set_up_optimal_kmeans(self, k, ntrials):
@@ -332,7 +333,7 @@ class ClusteredSkyKDEPosterior(object):
             self._set_up_kmeans(k)
             bic = self._bic()
 
-            print 'k = ', k, 'ntrials = ', ntrials, 'bic = ', bic
+            print('k = ', k, 'ntrials = ', ntrials, 'bic = ', bic)
 
             if bic >= best_bic:
                 best_means = self.means
@@ -444,11 +445,11 @@ class ClusteredSkyKDEPosterior(object):
         if n < nmax:
             return [(0, n)]
         else:
-            lows = range(0, n, nmax)
+            lows = list(range(0, n, nmax))
             highs = lows[1:]
             highs.append(n)
 
-            return zip(lows, highs)
+            return list(zip(lows, highs))
 
     def _adaptive_grid(self, order=HEALPIX_MACHINE_ORDER):
         theta = np.arccos(self.pts[:, 1])
@@ -555,14 +556,14 @@ class ClusteredSkyKDEPosterior(object):
 
             error = np.abs((areas - extrap_areas)/extrap_areas)
 
-            print 'Calculated sky area at nside = ', nside
-            print 'Areas are ', extrap_areas
-            print
+            print('Calculated sky area at nside = ', nside)
+            print('Areas are ', extrap_areas)
+            print()
 
             if np.all(areas > 0) and np.all(error < self.acc):
                 return extrap_areas
             elif nside >= nside_max:
-                print 'Ending sky area calculation at nside = ', nside
+                print('Ending sky area calculation at nside = ', nside)
                 return extrap_areas
             else:
                 old_areas = areas
