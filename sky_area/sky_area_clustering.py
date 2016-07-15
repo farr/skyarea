@@ -422,8 +422,7 @@ class ClusteredSkyKDEPosterior(object):
 
         """
 
-        ndim = self.kde_pts.shape[1]
-        npts = self.kde_pts.shape[0]
+        npts, ndim = self.kde_pts.shape
 
         # The number of parameters is:
         #
@@ -438,8 +437,7 @@ class ClusteredSkyKDEPosterior(object):
         pts = self.kde_pts.copy()
         pts[:, 1] = np.arcsin(pts[:, 1])
 
-        return (np.sum(np.log(self.posterior(pts))) -
-                nparams/2.0*np.log(self.kde_pts.shape[0]))
+        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(npts)
 
     def _split_range(self, n, nmax=100000):
         if n < nmax:
@@ -726,8 +724,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         """
 
-        ndim = self.kde_pts.shape[1]
-        npts = self.kde_pts.shape[0]
+        npts, ndim = self.kde_pts.shape
 
         # The number of parameters is:
         #
@@ -742,7 +739,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         pts = self.kde_pts.copy()
 
         return (np.sum(np.log(self.posterior_cartesian(pts))) -
-                nparams/2.0*np.log(self.kde_pts.shape[0]))
+                nparams/2.0*np.log(npts))
 
     def _as_healpix_slow(self, nside, nest=True):
         r"""Returns a healpix map with the mean and standard deviations
