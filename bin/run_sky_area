@@ -23,12 +23,16 @@ import sky_area.sky_area_clustering as sac
 
 import matplotlib.pyplot as plt
 
+
 class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
     pass
 
+
 lsctables.use_in(LIGOLWContentHandler)
 
-def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=True):
+
+def plot_skymap(
+        output, skypost, pixresol=np.pi/180.0, nest=True, inj=None, fast=True):
     nside = 1
     while hp.nside2resol(nside) > pixresol:
         nside *= 2
@@ -43,13 +47,15 @@ def plot_skymap(output, skypost, pixresol=np.pi/180.0, nest=True,inj=None, fast=
     ax = plt.subplot(111, projection='astro hours mollweide')
     ax.cla()
     ax.grid()
-    plot.healpix_heatmap(pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap=plt.get_cmap('cylon'))
+    plot.healpix_heatmap(
+        pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap='cylon')
 
     if inj is not None:
         # If using an injection file, also plot an X at the true position
         plt.plot(inj['ra'], inj['dec'], 'kx', ms=30, mew=1)
 
     plt.savefig(output)
+
 
 def plot_assign(output, skypost):
     k = skypost.k
@@ -64,7 +70,9 @@ def plot_assign(output, skypost):
 
     plt.savefig(output)
 
-def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True):
+
+def save_areas(output, skypost, sim_id, ra, dec,
+               cls=[0.5, 0.75, 0.9], fast=True):
 
     if sim_id is None or ra is None or dec is None:
         p_value = 0.0
@@ -72,7 +80,7 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True
         areas = skypost.sky_area(cls, fast=fast)
         areas = np.concatenate((areas, [0.0]))
     else:
-        p_value = skypost.p_values(np.array([[ra,dec]]))[0]
+        p_value = skypost.p_values(np.array([[ra, dec]]))[0]
         levels = np.concatenate((cls, [p_value]))
         areas = skypost.sky_area(levels, fast=fast)
 
@@ -91,36 +99,51 @@ def save_areas(output, skypost, sim_id, ra, dec, cls=[0.5, 0.75, 0.9], fast=True
             str(sim_id), p_value, areas[-1], *areas[:-1],
             sep='\t', file=out)
 
+
 if __name__ == '__main__':
     parser = OptionParser()
 
     parser.add_option('--outdir', help='output directory', default='.')
     parser.add_option('--samples', help='posterior samples file')
 
-    parser.add_option('--fitsoutname', help='filename for the FITS file', default='skymap.fits.gz')
+    parser.add_option('--fitsoutname', help='filename for the FITS file',
+                      default='skymap.fits.gz')
 
-    parser.add_option('--pdf', action='store_true', default=False, help='output plots in PDF format [default: PNG]')
+    parser.add_option('--pdf', action='store_true', default=False,
+                      help='output plots in PDF format [default: PNG]')
 
     parser.add_option('--inj', help='injection XML')
-    parser.add_option('--eventnum', default=0, type='int', help='event number [default: %default]')
+    parser.add_option('--eventnum', default=0, type='int',
+                      help='event number [default: %default]')
 
-    parser.add_option('--loadpost', help='filename for pickled posterior state')
+    parser.add_option('--loadpost',
+                      help='filename for pickled posterior state')
 
-    parser.add_option('--maxpts', type='int', help='maximum number of posterior points to use')
+    parser.add_option('--maxpts', type='int',
+                      help='maximum number of posterior points to use')
 
-    parser.add_option('--trials', type='int', default=5, help='number of trials at each clustering number [default: %default]')
+    parser.add_option('--trials', type='int', default=5,
+                      help='number of trials at each clustering number '
+                      '[default: %default]')
 
-    parser.add_option('--slowskyarea', default=False, action='store_true', help='use a much slower but robust sky area algorithm')
+    parser.add_option('--slowskyarea', default=False, action='store_true',
+                      help='use a much slower but robust sky area algorithm')
 
-    parser.add_option('--slowsmoothskymaps', default=False, action='store_true', help='use a faster algorithm for producing skymaps (that are "blocky")')
+    parser.add_option('--slowsmoothskymaps', default=False,
+                      action='store_true', help='use a faster algorithm for '
+                      'producing skymaps (that are "blocky")')
 
-    parser.add_option('--enable-distance-map', action='store_true', default=False, help='enable output of healpy map of distance mean and s.d.')
+    parser.add_option('--enable-distance-map', action='store_true',
+                      default=False, help='enable output of healpy map of '
+                      'distance mean and s.d.')
 
-    parser.add_option('--nside', type=int, default=512, help='HEALPix resolution [default: %default]')
+    parser.add_option('--nside', type=int, default=512,
+                      help='HEALPix resolution [default: %default]')
 
     parser.add_option('--objid', help='event ID to store in FITS header')
 
-    parser.add_option('--seed', type=int, default=None, help='use specified random seed')
+    parser.add_option('--seed', type=int, default=None,
+                      help='use specified random seed')
 
     (args, remaining) = parser.parse_args()
 
@@ -161,31 +184,34 @@ if __name__ == '__main__':
         pickle.dump(skypost, out)
 
     # First check if injection file is given and fill and auxiliary dictionary
-    injpos=None
+    injpos = None
     if args.inj is not None:
-      xmldoc = utils.load_filename(args.inj,
-                                    contenthandler=LIGOLWContentHandler)
-      try:
-        print('Checking if using a sim_inspiral table...')
-        injs = table.get_table(xmldoc,
-                   lsctables.SimInspiralTable.tableName)
-        inj = injs[args.eventnum]
-        injpos={'ra':inj.longitude,'dec':inj.latitude,'id':inj.simulation_id}
-        print(' yes')
-      except:
-        print('Checking if using a sim_burst table...')
-        injs = table.get_table(xmldoc,
-                     lsctables.SimBurstTable.tableName)
-        inj = injs[args.eventnum]
-        injpos={'ra':inj.ra,'dec':inj.dec,'id':inj.simulation_id}
-        print(' yes')
+        xmldoc = utils.load_filename(
+            args.inj, contenthandler=LIGOLWContentHandler)
+        try:
+            print('Checking if using a sim_inspiral table...')
+            injs = table.get_table(
+                xmldoc, lsctables.SimInspiralTable.tableName)
+            inj = injs[args.eventnum]
+            injpos = {
+                'ra': inj.longitude,
+                'dec': inj.latitude,
+                'id': inj.simulation_id}
+            print(' yes')
+        except:
+            print('Checking if using a sim_burst table...')
+            injs = table.get_table(xmldoc, lsctables.SimBurstTable.tableName)
+            inj = injs[args.eventnum]
+            injpos = {'ra': inj.ra, 'dec': inj.dec, 'id': inj.simulation_id}
+            print(' yes')
 
     print('plotting skymap ...')
     if args.pdf:
         skymap_out = os.path.join(args.outdir, 'skymap.pdf')
     else:
         skymap_out = os.path.join(args.outdir, 'skymap.png')
-    plot_skymap(skymap_out, skypost,inj=injpos, fast=not(args.slowsmoothskymaps))
+    plot_skymap(
+        skymap_out, skypost, inj=injpos, fast=not(args.slowsmoothskymaps))
 
     print('plotting cluster assignments ...')
     if args.pdf:
@@ -198,7 +224,8 @@ if __name__ == '__main__':
     if injpos is not None:
         save_areas(os.path.join(args.outdir, 'areas.dat'),
                    skypost,
-                   injpos['id'], injpos['ra'], injpos['dec'], fast=not(args.slowskyarea))
+                   injpos['id'], injpos['ra'], injpos['dec'],
+                   fast=not(args.slowskyarea))
 
     else:
         save_areas(os.path.join(args.outdir, 'areas.dat'),
@@ -207,7 +234,8 @@ if __name__ == '__main__':
 
     fits_nest = True
 
-    hpmap = skypost.as_healpix(args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
+    hpmap = skypost.as_healpix(
+        args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
     if args.enable_distance_map:
         prob, distmu, distsigma, _ = hpmap
         distmean, diststd = distance.parameters_to_marginal_moments(
@@ -216,16 +244,16 @@ if __name__ == '__main__':
         distmean = None
         diststd = None
 
-    names=data.dtype.names
+    names = data.dtype.names
     if 'time' in names:
-      gps_time=data['time'].mean()
+        gps_time = data['time'].mean()
     elif 'time_mean' in names:
-      gps_time=data['time_mean'].mean()
+        gps_time = data['time_mean'].mean()
     elif 'time_maxl' in names:
-      gps_time=data['time_maxl'].mean()
+        gps_time = data['time_maxl'].mean()
     else:
-      print("Cannot find time, time_mean, or time maxl variable in posterior. Not saving sky_pos obj.\n")
-      sys.exit(0)
+        parser.error(
+            "Cannot find time, time_mean, or time maxl variable in posterior.")
 
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
                        hpmap, creator=parser.get_prog_name(),
