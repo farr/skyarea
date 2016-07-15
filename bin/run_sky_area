@@ -149,6 +149,8 @@ if __name__ == '__main__':
 
     if args.seed is not None:
         np.random.seed(args.seed)
+    if args.samples is None:
+        parser.error('missing required argument: --samples')
 
     data = np.recfromtxt(args.samples, names=True)
 
