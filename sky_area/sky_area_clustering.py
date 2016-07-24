@@ -7,7 +7,7 @@ import numpy.linalg as nl
 import scipy.integrate as si
 from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance
-from lalinference.bayestar.postprocess import (
+from lalinference.healpix_tree import (
     HEALPIX_MACHINE_ORDER, HEALPIX_MACHINE_NSIDE, HEALPixTree)
 
 
@@ -536,8 +536,7 @@ class ClusteredSkyKDEPosterior(object):
     def _fast_area_within(self, levels):
         grid = self._adaptive_grid()
 
-        nside, ipix = np.transpose(
-            [(nside, ipix) for nside, _, ipix, _, _, _ in grid.visit()])
+        nside, ipix = np.transpose(list(grid.visit(extra=False)))
         theta, phi = hp.pix2ang(nside, ipix, nest=True)
         ra = phi
         dec = 0.5 * np.pi - theta
