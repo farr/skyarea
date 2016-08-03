@@ -133,8 +133,9 @@ if __name__ == '__main__':
                       action='store_true', help='use a faster algorithm for '
                       'producing skymaps (that are "blocky")')
 
-    parser.add_option('--enable-distance-map', action='store_true',
-                      default=False, help='enable output of healpy map of '
+    parser.add_option('--disable-distance-map', dest='enable_distance_map',
+                      action='store_false', default=True,
+                      help='disable output of healpy map of '
                       'distance mean and s.d.')
 
     parser.add_option('--nside', type=int, default=512,
