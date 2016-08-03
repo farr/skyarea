@@ -1,3 +1,4 @@
+from __future__ import print_function
 import bisect as bs
 import healpy as hp
 import numpy as np
@@ -7,6 +8,7 @@ from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance
 from lalinference.bayestar.postprocess import (
     HEALPIX_MACHINE_ORDER, HEALPIX_MACHINE_NSIDE, HEALPixTree)
+
 
 def km_assign(mus, cov, pts):
     """Implements the assignment step in the k-means algorithm.  Given a
@@ -20,32 +22,34 @@ def km_assign(mus, cov, pts):
     k = mus.shape[0]
     n = pts.shape[0]
 
-    dists = np.zeros((k,n))
+    dists = np.zeros((k, n))
 
-    for i,mu in enumerate(mus):
+    for i, mu in enumerate(mus):
         dx = pts - mu
-        dists[i,:] = np.sum(dx*nl.solve(cov, dx.T).T, axis=1)
+        dists[i, :] = np.sum(dx * nl.solve(cov, dx.T).T, axis=1)
 
     return np.argmin(dists, axis=0)
+
 
 def km_centroids(pts, assign, k):
     """Implements the centroid-update step of the k-means algorithm.
     Given a set of points, ``pts``, of shape ``(npts, ndim)``, and an
     assignment of each point to a region, ``assign``, and the number
     of means, ``k``, returns an array of shape ``(k, ndim)`` giving
-    the centroid of each region.  
+    the centroid of each region.
 
     """
 
     mus = np.zeros((k, pts.shape[1]))
     for i in range(k):
-        sel = assign==i
+        sel = assign == i
         if np.sum(sel) > 0:
-            mus[i,:] = np.mean(pts[sel, :], axis=0)
+            mus[i, :] = np.mean(pts[sel, :], axis=0)
         else:
-            mus[i,:] = pts[np.random.randint(pts.shape[0]), :]
+            mus[i, :] = pts[np.random.randint(pts.shape[0]), :]
 
     return mus
+
 
 def k_means(pts, k):
     """Implements k-means clustering on the set of points.
@@ -79,16 +83,19 @@ def k_means(pts, k):
 
     return mus, assign
 
+
 class ClusteredSkyKDEPosterior(object):
     r"""Represents a kernel-density estimate of a sky-position PDF that has
     been decomposed into clusters, using a different kernel for each
     cluster.
 
-    The estimated PDF is 
-    
+    The estimated PDF is
+
     .. math::
 
-      p\left( \vec{\theta} \right) = \sum_{i = 0}^{k-1} \frac{N_i}{N} \sum_{\vec{x} \in C_i} N\left[\vec{x}, \Sigma_i\right]\left( \vec{\theta} \right)
+      p\left( \vec{\theta} \right) = \sum_{i = 0}^{k-1} \frac{N_i}{N}
+      \sum_{\vec{x} \in C_i} N\left[\vec{x}, \Sigma_i\right]\left( \vec{\theta}
+      \right)
 
     where :math:`C_i` is the set of points belonging to cluster
     :math:`i`, :math:`N_i` is the number of points in this cluster,
@@ -111,7 +118,7 @@ class ClusteredSkyKDEPosterior(object):
     establish a mapping from KDE contours to credible levels.  The
     different point sets are accessible as the ``self.kde_pts`` and
     ``self.ranking_pts`` arrays in the object.
-    
+
     """
 
     def __init__(self, pts, ntrials=5, means=None, assign=None, acc=1e-2):
@@ -139,7 +146,7 @@ class ClusteredSkyKDEPosterior(object):
         self._acc = acc
 
         pts = pts.copy()
-        pts[:,1] = np.sin(pts[:,1])
+        pts[:, 1] = np.sin(pts[:, 1])
         self._pts = pts
 
         ppts = np.random.permutation(pts)
@@ -154,7 +161,7 @@ class ClusteredSkyKDEPosterior(object):
             self._set_up_kmeans(means.shape[0], means, assign)
 
         self._set_up_greedy_order()
-        
+
     @property
     def acc(self):
         """Integration accuracy for sky/searched areas.
@@ -264,10 +271,10 @@ class ClusteredSkyKDEPosterior(object):
         high_means = self.means
 
         low_k, mid_k, high_k = 1, 2, 4
-            
+
         while high_bic > mid_bic:
-            print 'extending ks: ', (low_k, mid_k, high_k)
-            print 'with bics: ', (low_bic, mid_bic, high_bic)
+            print('extending ks: ', (low_k, mid_k, high_k))
+            print('with bics: ', (low_bic, mid_bic, high_bic))
 
             low_k, mid_k = mid_k, high_k
             low_bic, mid_bic = mid_bic, high_bic
@@ -280,8 +287,8 @@ class ClusteredSkyKDEPosterior(object):
             high_assign = self.assign
 
         while high_k - low_k > 2:
-            print 'shrinking ks: ', (low_k, mid_k, high_k)
-            print 'with bics: ', (low_bic, mid_bic, high_bic)
+            print('shrinking ks: ', (low_k, mid_k, high_k))
+            print('with bics: ', (low_bic, mid_bic, high_bic))
 
             if high_k - mid_k > mid_k - low_k:
                 k = mid_k + (high_k - mid_k)/2
@@ -315,19 +322,19 @@ class ClusteredSkyKDEPosterior(object):
                     low_bic = bic
                     low_means = means
                     low_assign = assign
-            
-        print 'Found best k, BIC: ', mid_k, mid_bic
+
+        print('Found best k, BIC: ', mid_k, mid_bic)
         self._set_up_kmeans(mid_k, mid_means, mid_assign)
 
     def _set_up_optimal_kmeans(self, k, ntrials):
         best_bic = np.NINF
-        
+
         for i in range(ntrials):
             self._set_up_kmeans(k)
             bic = self._bic()
 
-            print 'k = ', k, 'ntrials = ', ntrials, 'bic = ', bic
-            
+            print('k = ', k, 'ntrials = ', ntrials, 'bic = ', bic)
+
             if bic >= best_bic:
                 best_means = self.means
                 best_assign = self.assign
@@ -354,7 +361,7 @@ class ClusteredSkyKDEPosterior(object):
             # bother adding a KDE for that cluster; its covariance would be
             # singular.
             if np.sum(sel) > ndim:
-                self._kdes.append(gaussian_kde(self.kde_pts[sel,:].T))
+                self._kdes.append(gaussian_kde(self.kde_pts[sel, :].T))
                 self._weights.append(float(np.sum(sel)))
         self._weights = np.array(self.weights)
 
@@ -363,7 +370,7 @@ class ClusteredSkyKDEPosterior(object):
 
     def _set_up_greedy_order(self):
         pts = self.ranking_pts.copy()
-        pts[:,1] = np.arcsin(pts[:,1])
+        pts[:, 1] = np.arcsin(pts[:, 1])
 
         posts = self.posterior(pts)
         self._greedy_order = np.argsort(posts)[::-1]
@@ -376,12 +383,12 @@ class ClusteredSkyKDEPosterior(object):
         """
         pts = pts.copy()
         pts = np.atleast_2d(pts)
-        pts[:,1] = np.sin(pts[:,1])
-        
+        pts[:, 1] = np.sin(pts[:, 1])
+
         post = np.zeros(pts.shape[0])
 
-        ras = pts[:,0]
-        sin_decs = pts[:,1]
+        ras = pts[:, 0]
+        sin_decs = pts[:, 1]
 
         for dra in [0.0, 2.0*np.pi, -2.0*np.pi]:
             pts = np.column_stack((ras+dra, sin_decs))
@@ -415,13 +422,12 @@ class ClusteredSkyKDEPosterior(object):
 
         """
 
-        ndim = self.kde_pts.shape[1]
-        npts = self.kde_pts.shape[0]
+        npts, ndim = self.kde_pts.shape
 
         # The number of parameters is:
         #
         # * ndim for each centroid location
-        # 
+        #
         # * (ndim+1)*ndim/2 Kernel covariances for each cluster
         #
         # * one weighting factor for the cluster (minus one for the
@@ -429,24 +435,25 @@ class ClusteredSkyKDEPosterior(object):
         nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
 
         pts = self.kde_pts.copy()
-        pts[:,1] = np.arcsin(pts[:,1])
+        pts[:, 1] = np.arcsin(pts[:, 1])
 
-        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
+        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(npts)
 
     def _split_range(self, n, nmax=100000):
         if n < nmax:
-            return [(0,n)]
+            return [(0, n)]
         else:
-            lows = range(0, n, nmax)
+            lows = list(range(0, n, nmax))
             highs = lows[1:]
             highs.append(n)
 
-            return zip(lows, highs)
+            return list(zip(lows, highs))
 
     def _adaptive_grid(self, order=HEALPIX_MACHINE_ORDER):
         theta = np.arccos(self.pts[:, 1])
         phi = self.pts[:, 0]
-        ipix = hp.ang2pix(HEALPIX_MACHINE_NSIDE, theta, phi, nest=True).astype(np.uint64)
+        ipix = hp.ang2pix(
+            HEALPIX_MACHINE_NSIDE, theta, phi, nest=True).astype(np.uint64)
         return HEALPixTree(ipix, max_samples_per_pixel=1, max_order=order)
 
     def _as_healpix_slow(self, nside, nest=True):
@@ -455,7 +462,7 @@ class ClusteredSkyKDEPosterior(object):
         pixels = np.column_stack((phis, np.pi/2.0 - thetas))
         pixel_posts = self.posterior(pixels)
         return pixel_posts / np.sum(pixel_posts)
-    
+
     def _as_healpix_fast(self, nside, nest=True):
         """Returns a healpix map of the posterior density, by default in
         nested order.
@@ -466,7 +473,9 @@ class ClusteredSkyKDEPosterior(object):
         map = np.empty(hp.nside2npix(nside))
         grid = self._adaptive_grid(order)
 
-        nside, ipix, ipix0, ipix1 = zip(*[(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _ in grid.visit()])
+        nside, ipix, ipix0, ipix1 = np.transpose(
+            [(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _
+             in grid.visit()])
         theta, phi = hp.pix2ang(nside, ipix, nest=True)
         ra = phi
         dec = 0.5 * np.pi - theta
@@ -500,31 +509,34 @@ class ClusteredSkyKDEPosterior(object):
     def _fast_area_within(self, levels):
         grid = self._adaptive_grid()
 
-        nside, ipix = zip(*[(nside, ipix) for nside, _, ipix, _, _, _ in grid.visit()])
+        nside, ipix = np.transpose(
+            [(nside, ipix) for nside, _, ipix, _, _, _ in grid.visit()])
         theta, phi = hp.pix2ang(nside, ipix, nest=True)
         ra = phi
         dec = 0.5 * np.pi - theta
         plevels = self.posterior(np.column_stack((ra, dec)))
-        pareas = np.asarray([hp.nside2pixarea(ns) for ns in nside])
+        pareas = hp.nside2pixarea(nside)
 
         areas = []
         for l in levels:
             areas.append(np.sum(pareas[plevels >= l]))
 
         return np.array(areas)
-    
+
     def _area_within_nside(self, levels, nside):
         npix = hp.nside2npix(nside)
         pixarea = hp.nside2pixarea(nside)
-        
+
         areas = 0.0
         for low, high in self._split_range(npix):
-            thetas, phis = hp.pix2ang(nside, np.arange(low, high, dtype=np.int))
+            thetas, phis = hp.pix2ang(
+                nside, np.arange(low, high, dtype=np.int))
             pixels = np.column_stack((phis, np.pi/2.0 - thetas))
 
             pixel_posts = self.posterior(pixels)
 
-            sub_areas = np.array([pixarea*np.sum(pixel_posts > l) for l in levels])
+            sub_areas = np.array(
+                [pixarea*np.sum(pixel_posts > l) for l in levels])
             areas = areas + sub_areas
 
         return areas
@@ -542,14 +554,14 @@ class ClusteredSkyKDEPosterior(object):
 
             error = np.abs((areas - extrap_areas)/extrap_areas)
 
-            print 'Calculated sky area at nside = ', nside
-            print 'Areas are ', extrap_areas
-            print
+            print('Calculated sky area at nside = ', nside)
+            print('Areas are ', extrap_areas)
+            print()
 
             if np.all(areas > 0) and np.all(error < self.acc):
                 return extrap_areas
             elif nside >= nside_max:
-                print 'Ending sky area calculation at nside = ', nside
+                print('Ending sky area calculation at nside = ', nside)
                 return extrap_areas
             else:
                 old_areas = areas
@@ -561,25 +573,24 @@ class ClusteredSkyKDEPosterior(object):
 
         """
         cls = np.atleast_1d(cls)
-        idxs=[int(round(cl*self.ranking_pts.shape[0])) for cl in cls]
-        missed=False
-        if idxs[-1]==len(self.greedy_posteriors):
-          # this can happen if the injected position is totally missed
-          idxs[-1]-=1
-          missed=True
+        idxs = [int(round(cl*self.ranking_pts.shape[0])) for cl in cls]
+        missed = False
+        if idxs[-1] == len(self.greedy_posteriors):
+            # this can happen if the injected position is totally missed
+            idxs[-1] -= 1
+            missed = True
 
         post_levels = [self.greedy_posteriors[i] for i in idxs]
 
         if fast:
-            out=self._fast_area_within(post_levels)
+            out = self._fast_area_within(post_levels)
         else:
-            out=self._area_within(post_levels)
+            out = self._area_within(post_levels)
 
         if missed:
-          # if missed set the searched are to be the whole sky
-          out[-1]=4*np.pi
+            # if missed set the searched are to be the whole sky
+            out[-1] = 4*np.pi
         return out
-
 
     def searched_area(self, pts, fast=True):
         """Returns the sky area that must be searched using a greedy algorithm
@@ -611,7 +622,8 @@ class ClusteredSkyKDEPosterior(object):
         for pl in post_levels:
             indexes.append(bs.bisect(greedy_levels, pl))
 
-        return 1.0 - np.array(indexes)/float(n)
+        return 1.0 - np.array(indexes) / float(n)
+
 
 class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
     """Like :class:`ClusteredSkyKDEPosterior`, but clusters in 3D
@@ -625,10 +637,10 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         """Initialise the posterior object.
 
         :param pts: A ``(npts, 3)`` shaped array.  The first column is
-          RA in radians, then DEC in radians, then distance in Mpc. 
+          RA in radians, then DEC in radians, then distance in Mpc.
 
         :param ntrials: The number of trials to make at each k for
-          optimising the clustering. 
+          optimising the clustering.
 
         :param means: If given, use these means as the clustering centroids.
 
@@ -638,7 +650,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         pts = pts.copy()
         _pts = pts.copy()[:, :-1]
-        _pts[:,1] = np.sin(_pts[:,1])
+        _pts[:, 1] = np.sin(_pts[:, 1])
         self._pts = _pts
 
         indices = np.arange(len(pts))
@@ -655,23 +667,21 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         self._set_up_greedy_order()
 
-
     @staticmethod
     def _pts_to_xyzpts(pts):
-        ras = pts[:,0]
-        decs = pts[:,1]
-        ds = pts[:,2]
-        
+        ras = pts[:, 0]
+        decs = pts[:, 1]
+        ds = pts[:, 2]
+
         xyzpts = np.column_stack((ds*np.cos(ras)*np.cos(decs),
                                   ds*np.sin(ras)*np.cos(decs),
                                   ds*np.sin(decs)))
 
         return xyzpts
 
-
     def posterior(self, pts):
         """Given an array of positions in RA, DEC, dist, compute the 3D
-        volumetric posterior density (per Mpc) at those points. 
+        volumetric posterior density (per Mpc) at those points.
 
         """
 
@@ -696,7 +706,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
     def conditional_posterior(self, ra, dec, ds):
         """Returns a slice through the smoothed posterior at the given
         RA, DEC as a function of distance.  WARNING: the returned
-        posterior is not normalised. 
+        posterior is not normalised.
 
         """
 
@@ -714,13 +724,12 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         """
 
-        ndim = self.kde_pts.shape[1]
-        npts = self.kde_pts.shape[0]
+        npts, ndim = self.kde_pts.shape
 
         # The number of parameters is:
         #
         # * ndim for each centroid location
-        # 
+        #
         # * (ndim+1)*ndim/2 Kernel covariances for each cluster
         #
         # * one weighting factor for the cluster (minus one for the
@@ -729,12 +738,13 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         pts = self.kde_pts.copy()
 
-        return np.sum(np.log(self.posterior_cartesian(pts))) - nparams/2.0*np.log(self.kde_pts.shape[0])
+        return (np.sum(np.log(self.posterior_cartesian(pts))) -
+                nparams/2.0*np.log(npts))
 
     def _as_healpix_slow(self, nside, nest=True):
         r"""Returns a healpix map with the mean and standard deviations
         of :math:`d` for any pixel containing at least one posterior
-        sample. 
+        sample.
 
         """
         npix = hp.nside2npix(nside)
@@ -773,8 +783,9 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         map = [np.empty(npix), np.empty(npix), np.empty(npix), np.empty(npix)]
         grid = self._adaptive_grid(order)
 
-        nside, ipix, ipix0, ipix1 = zip(*[(nside, ipix, ipix0, ipix1)
-            for nside, _, ipix, ipix0, ipix1, _ in grid.visit()])
+        nside, ipix, ipix0, ipix1 = np.transpose(
+            [(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _
+             in grid.visit()])
         pts = np.transpose(hp.pix2vec(nside, ipix, nest=True))
 
         datasets = [kde.dataset for kde in self.kdes]

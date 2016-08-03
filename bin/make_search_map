@@ -8,26 +8,41 @@ import sky_area.search as sch
 if __name__ == '__main__':
     parser = OptionParser()
 
-    parser.add_option('--output', help='output FITS file', default='search_map.fits.gz')
-    parser.add_option('--samples', help='posterior samples file', default='posterior_samples.dat')
+    parser.add_option(
+        '--output', help='output FITS file',
+        default='search_map.fits.gz')
+    parser.add_option(
+        '--samples', help='posterior samples file',
+        default='posterior_samples.dat')
 
-    parser.add_option('--beam', default=1.0*np.pi/180.0, type='float', help='beam FWHM (in radians; default 1 degree)')
-    parser.add_option('--pix-per-beam', default=10, type='int', help='number of pixels per beam in output map')
+    parser.add_option(
+        '--beam', default=1.0*np.pi/180.0, type='float',
+        help='beam FWHM (in radians; default 1 degree)')
+    parser.add_option(
+        '--pix-per-beam', default=10, type='int',
+        help='number of pixels per beam in output map')
 
-    parser.add_option('--objid', help='ID to store in FITS header')
-    parser.add_option('--gps-time', default=None, type='float', help='GPS time to store in FITS header')
+    parser.add_option(
+        '--objid', help='ID to store in FITS header')
+    parser.add_option(
+        '--gps-time', default=None, type='float',
+        help='GPS time to store in FITS header')
 
-    parser.add_option('--ring', action='store_true', default=False, help='produce ring-ordered maps (nest is default)')
-    
+    parser.add_option(
+        '--ring', action='store_true', default=False,
+        help='produce ring-ordered maps (nest is default)')
+
     args, remaining = parser.parse_args()
 
     if args.ring:
-        nest=False
+        nest = False
     else:
-        nest=True
+        nest = True
 
     data = np.genfromtxt(args.samples, names=True)
-    hmap = sch.search_map(data['ra'], data['dec'], args.beam, nest=nest, pix_per_beam=args.pix_per_beam)
+    hmap = sch.search_map(
+        data['ra'], data['dec'], args.beam, nest=nest,
+        pix_per_beam=args.pix_per_beam)
 
     fits.write_sky_map(args.output, hmap, creator=parser.get_prog_name(),
                        objid=args.objid, gps_time=args.gps_time, nest=nest)

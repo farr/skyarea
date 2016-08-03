@@ -6,12 +6,14 @@ import healpy as hp
 import healpy.sphtfunc as hps
 import numpy as np
 
+
 def _find_nside(beam, pix_per_beam):
     nside = 4
     while beam/hp.nside2resol(nside) < pix_per_beam:
         nside *= 2
 
     return nside
+
 
 def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
     """Returns a healpix map optimised for searching on the sky.  It
@@ -42,7 +44,8 @@ def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
     # Create the map in ring coordinates first.
     hmap = np.bincount(hp.ang2pix(nside, thetas, ras))
     if hmap.shape[0] < hp.nside2npix(nside):
-        hmap = np.concatenate((hmap, np.zeros(hp.nside2npix(nside)-hmap.shape[0])))
+        hmap = np.concatenate(
+            (hmap, np.zeros(hp.nside2npix(nside) - hmap.shape[0])))
 
     hmap = hmap / float(thetas.shape[0]) / hp.nside2pixarea(nside)
 
@@ -52,8 +55,9 @@ def search_map(ras, decs, beam, nest=True, pix_per_beam=10):
         chmap = hp.reorder(chmap, r2n=True)
 
     norm = np.sum(chmap) * hp.nside2pixarea(nside, degrees=True)
-    
+
     return chmap / norm
+
 
 def search_map_searched_area_pt(smap, ra, dec, nest=True):
     """Returns the area on the sky required to be imaged in a greedy
@@ -75,11 +79,11 @@ def search_map_searched_area_pt(smap, ra, dec, nest=True):
     """
 
     smap = np.atleast_1d(smap)
-    
+
     nside = hp.npix2nside(smap.shape[0])
 
     theta = np.pi/2.0 - dec
-    
+
     ptind = hp.ang2pix(nside, theta, ra, nest=nest)
 
     ptlevel = smap[ptind]
@@ -87,6 +91,7 @@ def search_map_searched_area_pt(smap, ra, dec, nest=True):
     nabove = np.sum(smap >= ptlevel)
 
     return nabove*hp.nside2pixarea(nside, degrees=True)
+
 
 def search_map_searched_area_cl(smap, cl):
     """Returns the area that must be searched greedily using ``smap`` to
@@ -113,7 +118,7 @@ def search_map_searched_area_cl(smap, cl):
 
     smap = np.atleast_1d(smap)
     nside = hp.npix2nside(smap.shape[0])
-    
+
     # Normalise the map to sum to 1:
     smap = smap / np.sum(smap)
 
@@ -122,6 +127,7 @@ def search_map_searched_area_cl(smap, cl):
     nsearched = np.sum(cum_probs <= cl)
 
     return nsearched*hp.nside2pixarea(nside, degrees=True)
+
 
 def search_map_credible_level_pt(smap, ra, dec, nest=True):
     """Returns the credible level at which the given point would be found
