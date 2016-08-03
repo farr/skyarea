@@ -1,4 +1,5 @@
 from __future__ import print_function
+import warnings
 import bisect as bs
 import healpy as hp
 import numpy as np
@@ -456,6 +457,29 @@ class ClusteredSkyKDEPosterior(object):
             HEALPIX_MACHINE_NSIDE, theta, phi, nest=True).astype(np.uint64)
         return HEALPixTree(ipix, max_samples_per_pixel=1, max_order=order)
 
+    def _bayestar_adaptive_grid(self, top_nside=16, rounds=8):
+        """Implement of the BAYESTAR adaptive mesh refinement scheme as
+        described in Section VI of Singer & Price 2016, PRD, 93, 024013
+        (http://dx.doi.org/10.1103/PhysRevD.93.024013).
+
+        FIXME: Consider refactoring BAYESTAR itself to perform the adaptation
+        step in Python.
+        """
+        top_npix = hp.nside2npix(top_nside)
+        nrefine = top_npix // 4
+        cells = zip([0] * nrefine, [top_nside // 2] * nrefine, range(nrefine))
+        for _ in range(rounds - 1):
+            cells = sorted(cells, key=lambda (p, n, i): p / n**2)
+            new_nside, new_ipix = np.transpose([
+                (nside * 2, ipix * 4 + i)
+                for _, nside, ipix in cells[-nrefine:] for i in range(4)])
+            theta, phi = hp.pix2ang(new_nside, new_ipix, nest=True)
+            ra = phi
+            dec = 0.5 * np.pi - theta
+            p = self.posterior(np.column_stack((ra, dec)))
+            cells[-nrefine:] = zip(p, new_nside, new_ipix)
+        return cells
+
     def _as_healpix_slow(self, nside, nest=True):
         npix = hp.nside2npix(nside)
         thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
@@ -468,20 +492,23 @@ class ClusteredSkyKDEPosterior(object):
         nested order.
 
         """
-        order = hp.nside2order(nside)
-        npix = hp.nside2npix(nside)
-        map = np.empty(hp.nside2npix(nside))
-        grid = self._adaptive_grid(order)
+        cell_post, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
 
-        nside, ipix, ipix0, ipix1 = np.transpose(
-            [(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _
-             in grid.visit()])
-        theta, phi = hp.pix2ang(nside, ipix, nest=True)
-        ra = phi
-        dec = 0.5 * np.pi - theta
-        post = self.posterior(np.column_stack((ra, dec)))
-        for ipix0, ipix1, ppost in zip(ipix0, ipix1, post):
-            map[ipix0:ipix1] = ppost
+        max_nside = max(cell_nside)
+        max_npix = hp.nside2npix(max_nside)
+        map = np.empty(max_npix)
+
+        for cpost, cnside, cipix in zip(cell_post, cell_nside, cell_ipix):
+            cnpix = hp.nside2npix(cnside)
+            cnpts = (max_npix // cnpix)
+            ipix0 = cipix * cnpts
+            ipix1 = (cipix + 1) * cnpts
+            map[ipix0:ipix1] = cpost
+
+        # FIXME: we're ignoring the requested value of nside
+        warnings.warn('Ignoring user-provided value of nside because it is not '
+                      'currently implemented for the fast pixelization.',
+                      RuntimeWarning, stacklevel=2)
 
         if nest:
             pass  # Map is already in nested order
@@ -777,16 +804,20 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         nested order.
 
         """
-        order = hp.nside2order(nside)
-        npix = hp.nside2npix(nside)
-        pixarea = hp.nside2pixarea(nside)
-        map = [np.empty(npix), np.empty(npix), np.empty(npix), np.empty(npix)]
-        grid = self._adaptive_grid(order)
+        _, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
+        cell_nside = np.asarray(cell_nside)
+        cell_ipix = np.asarray(cell_ipix)
 
-        nside, ipix, ipix0, ipix1 = np.transpose(
-            [(nside, ipix, ipix0, ipix1) for nside, _, ipix, ipix0, ipix1, _
-             in grid.visit()])
-        pts = np.transpose(hp.pix2vec(nside, ipix, nest=True))
+        max_nside = max(cell_nside)
+        max_npix = hp.nside2npix(max_nside)
+        map = np.empty(max_npix)
+
+        map = [np.empty(max_npix),
+               np.empty(max_npix),
+               np.empty(max_npix),
+               np.empty(max_npix)]
+
+        pts = np.transpose(hp.pix2vec(cell_nside, cell_ipix, nest=True))
 
         datasets = [kde.dataset for kde in self.kdes]
         inverse_covariances = [kde.inv_cov for kde in self.kdes]
@@ -802,17 +833,26 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         # and normalization.
         distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
 
-        for ipix0, ipix1, prob, distmu, distsigma, distnorm in zip(
-                    ipix0, ipix1, prob, distmu, distsigma, distnorm):
+        for prob, distmu, distsigma, distnorm, cnside, cipix in zip(
+                prob, distmu, distsigma, distnorm, cell_nside, cell_ipix):
+            cnpix = hp.nside2npix(cnside)
+            cnpts = (max_npix // cnpix)
+            ipix0 = cipix * cnpts
+            ipix1 = (cipix + 1) * cnpts
             map[0][ipix0:ipix1] = prob
             map[1][ipix0:ipix1] = distmu
             map[2][ipix0:ipix1] = distsigma
             map[3][ipix0:ipix1] = distnorm
 
-        map[0] *= pixarea
+        map[0] *= hp.nside2pixarea(max_nside)
         # Normalize marginal probability...
         # just to be safe. It should be normalized already.
         map[0] /= map[0].sum()
+
+        # FIXME: we're ignoring the requested value of nside
+        warnings.warn('Ignoring user-provided value of nside because it is not '
+                      'currently implemented for the fast pixelization.',
+                      RuntimeWarning, stacklevel=2)
 
         if nest:
             pass  # Map is already in nested order
