@@ -14,6 +14,7 @@ import lalinference.cmap
 from lalinference import fits
 from lalinference import plot
 from lalinference.bayestar import distance
+from astropy.table import Table
 import healpy as hp
 import numpy as np
 import os
@@ -29,6 +30,32 @@ class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
 
 
 lsctables.use_in(LIGOLWContentHandler)
+
+
+def read_samples(filename):
+    mcmc_path = 'lalinference/lalinference_mcmc/posterior_samples'
+    nest_path = 'lalinference/lalinference_nest/nested_samples'
+
+    try:
+        table = Table.read(filename, format='hdf5', path=mcmc_path)
+    except IOError:
+        try:
+            table = Table.read(filename, format='hdf5', path=nest_path)
+        except IOError:
+            try:
+                table = Table.read(filename, format='ascii')
+            except IOError:
+                raise IOError(
+                    'Could not read the samples file as HDF5 or ASCII')
+
+    name_map = [['rightascension', 'ra'],
+                ['declination', 'dec'],
+                ['distance', 'dist']]
+    for old_name, new_name in name_map:
+        if old_name in table.colnames:
+            table.rename_column(old_name, new_name)
+
+    return table
 
 
 def plot_skymap(
@@ -153,15 +180,12 @@ if __name__ == '__main__':
     if args.samples is None:
         parser.error('missing required argument: --samples')
 
-    data = np.recfromtxt(args.samples, names=True)
+    data = read_samples(args.samples)
 
     if args.enable_distance_map:
         try:
-            try:
-                dist = data['dist']
-            except ValueError:
-                dist = data['distance']
-        except ValueError:
+            dist = data['dist']
+        except KeyError:
             parser.error(
                 "The posterior samples file '{0}' does not have a distance "
                 "column. Cannot generate distance map.".format(args.samples))
