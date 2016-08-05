@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from lalinference import fits
+from lalinference.io import fits
 import numpy as np
 from optparse import OptionParser
 import sky_area.search as sch
