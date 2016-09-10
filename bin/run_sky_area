@@ -154,7 +154,12 @@ if __name__ == '__main__':
     if args.samples is None:
         parser.error('missing required argument: --samples')
 
-    data = hdf5.read_samples(args.samples)
+    try:
+        data = hdf5.read_samples(args.samples)
+    except IOError:
+        # FIXME: remove this code path once we support only HDF5
+        from astropy.table import Table
+        data = Table.read(args.samples, format='ascii')
 
     if args.enable_distance_map:
         try:
