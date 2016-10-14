@@ -48,7 +48,7 @@
           <div class="body">
             
   <h1>Source code for sky_area.sky_area_clustering</h1><div class="highlight"><pre>
-<span class="kn">import</span> <span class="nn">bisect</span> <span class="kn">as</span> <span class="nn">bs</span>
+<span></span><span class="kn">import</span> <span class="nn">bisect</span> <span class="kn">as</span> <span class="nn">bs</span>
 <span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">nl</span>
@@ -108,7 +108,7 @@
 <span class="sd">      (exclusive) indicating the assignment of each point to a region.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">k</span><span class="p">,</span> <span class="s">&#39;must have more points than means&#39;</span>
+    <span class="k">assert</span> <span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;must have more points than means&#39;</span>
 
     <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
@@ -313,8 +313,8 @@
         <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span>
             
         <span class="k">while</span> <span class="n">high_bic</span> <span class="o">&gt;</span> <span class="n">mid_bic</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&#39;extending ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
-            <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s1">&#39;extending ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s1">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
 
             <span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span> <span class="o">=</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span>
             <span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span> <span class="o">=</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span>
@@ -336,8 +336,8 @@
                 <span class="k">break</span>
 
         <span class="k">while</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">low_k</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&#39;shrinking ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
-            <span class="k">print</span> <span class="s">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s1">&#39;shrinking ks: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_k</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">high_k</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s1">&#39;with bics: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">low_bic</span><span class="p">,</span> <span class="n">mid_bic</span><span class="p">,</span> <span class="n">high_bic</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span> <span class="o">&gt;</span> <span class="n">mid_k</span> <span class="o">-</span> <span class="n">low_k</span><span class="p">:</span>
                 <span class="n">k</span> <span class="o">=</span> <span class="n">mid_k</span> <span class="o">+</span> <span class="p">(</span><span class="n">high_k</span> <span class="o">-</span> <span class="n">mid_k</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
@@ -372,7 +372,7 @@
                     <span class="n">low_means</span> <span class="o">=</span> <span class="n">means</span>
                     <span class="n">low_assign</span> <span class="o">=</span> <span class="n">assign</span>
             
-        <span class="k">print</span> <span class="s">&#39;Found best k, BIC: &#39;</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_bic</span>
+        <span class="k">print</span> <span class="s1">&#39;Found best k, BIC: &#39;</span><span class="p">,</span> <span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_bic</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="n">mid_k</span><span class="p">,</span> <span class="n">mid_means</span><span class="p">,</span> <span class="n">mid_assign</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_up_optimal_kmeans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">):</span>
@@ -382,7 +382,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_kmeans</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="n">bic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bic</span><span class="p">()</span>
 
-            <span class="k">print</span> <span class="s">&#39;k = &#39;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="s">&#39;ntrials = &#39;</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">,</span> <span class="s">&#39;bic = &#39;</span><span class="p">,</span> <span class="n">bic</span>
+            <span class="k">print</span> <span class="s1">&#39;k = &#39;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="s1">&#39;ntrials = &#39;</span><span class="p">,</span> <span class="n">ntrials</span><span class="p">,</span> <span class="s1">&#39;bic = &#39;</span><span class="p">,</span> <span class="n">bic</span>
             
             <span class="k">if</span> <span class="n">bic</span> <span class="o">&gt;</span> <span class="n">best_bic</span><span class="p">:</span>
                 <span class="n">best_means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
@@ -406,15 +406,15 @@
         <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
             <span class="n">sel</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assign</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span>
-            <span class="c"># If there are fewer points than degrees of freedom, then don&#39;t</span>
-            <span class="c"># bother adding a KDE for that cluster; its covariance would be</span>
-            <span class="c"># singular.</span>
+            <span class="c1"># If there are fewer points than degrees of freedom, then don&#39;t</span>
+            <span class="c1"># bother adding a KDE for that cluster; its covariance would be</span>
+            <span class="c1"># singular.</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">ndim</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_kdes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="p">[</span><span class="n">sel</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sel</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
 
-        <span class="c"># Normalize the weights</span>
+        <span class="c1"># Normalize the weights</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_weights</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_up_greedy_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -474,14 +474,14 @@
         <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">npts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="c"># The number of parameters is:</span>
-        <span class="c">#</span>
-        <span class="c"># * ndim for each centroid location</span>
-        <span class="c"># </span>
-        <span class="c"># * (ndim+1)*ndim/2 Kernel covariances for each cluster</span>
-        <span class="c">#</span>
-        <span class="c"># * one weighting factor for the cluster (minus one for the</span>
-        <span class="c">#   overall constraint that the weights must sum to one)</span>
+        <span class="c1"># The number of parameters is:</span>
+        <span class="c1">#</span>
+        <span class="c1"># * ndim for each centroid location</span>
+        <span class="c1"># </span>
+        <span class="c1"># * (ndim+1)*ndim/2 Kernel covariances for each cluster</span>
+        <span class="c1">#</span>
+        <span class="c1"># * one weighting factor for the cluster (minus one for the</span>
+        <span class="c1">#   overall constraint that the weights must sum to one)</span>
         <span class="n">nparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="n">ndim</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="p">((</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span>
 
         <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde_pts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -527,7 +527,7 @@
 
         <span class="k">for</span> <span class="n">pc</span><span class="p">,</span> <span class="n">pp</span><span class="p">,</span> <span class="n">ns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pcentres</span><span class="p">,</span> <span class="n">pposts</span><span class="p">,</span> <span class="n">nsides</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">ns</span> <span class="o">&gt;</span> <span class="n">nside</span><span class="p">:</span>
-                <span class="c"># Then we are extirpolating the posterior to the map</span>
+                <span class="c1"># Then we are extirpolating the posterior to the map</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="o">-</span><span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="n">n</span> <span class="o">=</span> <span class="n">ns</span>
                 <span class="k">while</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">nside</span><span class="p">:</span>
@@ -535,7 +535,7 @@
                     <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="mi">4</span>
                 <span class="nb">map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">pp</span><span class="o">*</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span><span class="o">/</span><span class="n">hp</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="n">nside</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c"># We are interpolating the posterior to the map</span>
+                <span class="c1"># We are interpolating the posterior to the map</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="n">ns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="o">-</span><span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="n">ilow</span> <span class="o">=</span> <span class="n">i</span>
                 <span class="n">ihigh</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
@@ -548,7 +548,7 @@
                 <span class="nb">map</span><span class="p">[</span><span class="n">ilow</span><span class="p">:</span><span class="n">ihigh</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span>
 
         <span class="k">if</span> <span class="n">nest</span><span class="p">:</span>
-            <span class="k">pass</span>  <span class="c"># Map is already in nested order</span>
+            <span class="k">pass</span>  <span class="c1"># Map is already in nested order</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">map</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="nb">map</span><span class="p">,</span> <span class="n">n2r</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
@@ -613,14 +613,14 @@
 
             <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">areas</span> <span class="o">-</span> <span class="n">extrap_areas</span><span class="p">)</span><span class="o">/</span><span class="n">extrap_areas</span><span class="p">)</span>
 
-            <span class="k">print</span> <span class="s">&#39;Calculated sky area at nside = &#39;</span><span class="p">,</span> <span class="n">nside</span>
-            <span class="k">print</span> <span class="s">&#39;Areas are &#39;</span><span class="p">,</span> <span class="n">extrap_areas</span>
+            <span class="k">print</span> <span class="s1">&#39;Calculated sky area at nside = &#39;</span><span class="p">,</span> <span class="n">nside</span>
+            <span class="k">print</span> <span class="s1">&#39;Areas are &#39;</span><span class="p">,</span> <span class="n">extrap_areas</span>
             <span class="k">print</span>
 
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">areas</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">extrap_areas</span>
             <span class="k">elif</span> <span class="n">nside</span> <span class="o">&gt;=</span> <span class="n">nside_max</span><span class="p">:</span>
-                <span class="k">print</span> <span class="s">&#39;Ending sky area calculation at nside = &#39;</span><span class="p">,</span> <span class="n">nside</span>
+                <span class="k">print</span> <span class="s1">&#39;Ending sky area calculation at nside = &#39;</span><span class="p">,</span> <span class="n">nside</span>
                 <span class="k">return</span> <span class="n">extrap_areas</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">old_areas</span> <span class="o">=</span> <span class="n">areas</span>
@@ -662,7 +662,7 @@
 
         <span class="n">post_levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
 
-        <span class="c"># Need smallest to largest, not other way around</span>
+        <span class="c1"># Need smallest to largest, not other way around</span>
         <span class="n">greedy_levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greedy_posteriors</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">greedy_levels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -771,22 +771,22 @@
         <span class="n">inverse_covariances</span> <span class="o">=</span> <span class="p">[</span><span class="n">kde</span><span class="o">.</span><span class="n">inv_cov</span> <span class="k">for</span> <span class="n">kde</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdes</span><span class="p">]</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
 
-        <span class="c"># Compute marginal probability, conditional mean, and conditional</span>
-        <span class="c"># standard deviation in all directions.</span>
+        <span class="c1"># Compute marginal probability, conditional mean, and conditional</span>
+        <span class="c1"># standard deviation in all directions.</span>
         <span class="n">prob</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">distance</span><span class="o">.</span><span class="n">cartesian_kde_to_moments</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">pix2vec</span><span class="p">(</span><span class="n">nside</span><span class="p">,</span> <span class="n">ipix</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="n">nest</span><span class="p">)),</span>
             <span class="n">datasets</span><span class="p">,</span> <span class="n">inverse_covariances</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ipix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npix</span><span class="p">)])</span>
 
-        <span class="c"># Normalize marginal probability...</span>
-        <span class="c"># just to be safe. It should be marginalized already.</span>
+        <span class="c1"># Normalize marginal probability...</span>
+        <span class="c1"># just to be safe. It should be marginalized already.</span>
         <span class="n">prob</span> <span class="o">/=</span> <span class="n">prob</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
-        <span class="c"># Apply method of moments to find location parameter, scale parameter,</span>
-        <span class="c"># and normalization.</span>
+        <span class="c1"># Apply method of moments to find location parameter, scale parameter,</span>
+        <span class="c1"># and normalization.</span>
         <span class="n">distmu</span><span class="p">,</span> <span class="n">distsigma</span><span class="p">,</span> <span class="n">distnorm</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">moments_to_parameters</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
 
-        <span class="c"># Done!</span>
+        <span class="c1"># Done!</span>
         <span class="k">return</span> <span class="n">prob</span><span class="p">,</span> <span class="n">distmu</span><span class="p">,</span> <span class="n">distsigma</span><span class="p">,</span> <span class="n">distnorm</span>
 </div>
 <div class="viewcode-block" id="Clustered3DKDEPosterior.sky_area"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.Clustered3DKDEPosterior.sky_area">[docs]</a>    <span class="k">def</span> <span class="nf">sky_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
@@ -820,8 +820,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pts</span> <span class="o">=</span> <span class="n">pts</span>
         
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">nside</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">29</span><span class="p">:</span>
-            <span class="c"># Stop here.  Either there is only one point left, or we</span>
-            <span class="c"># are in danger of exceeding the healpy limit on nside</span>
+            <span class="c1"># Stop here.  Either there is only one point left, or we</span>
+            <span class="c1"># are in danger of exceeding the healpy limit on nside</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sub_grids</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">elif</span> <span class="n">ipix</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">nside</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">nside</span> <span class="o">=</span> <span class="mi">1</span>
@@ -873,7 +873,7 @@
     
 
 <div class="viewcode-block" id="adaptive_grid_pixel_centers_nsides"><a class="viewcode-back" href="../../index.html#sky_area.sky_area_clustering.adaptive_grid_pixel_centers_nsides">[docs]</a><span class="k">def</span> <span class="nf">adaptive_grid_pixel_centers_nsides</span><span class="p">(</span><span class="n">pts</span><span class="p">):</span>
-    <span class="c"># Protect against repeated values</span>
+    <span class="c1"># Protect against repeated values</span>
     <span class="n">ura</span><span class="p">,</span> <span class="n">uind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">return_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">pts</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="n">uind</span><span class="p">,:]</span>
 
