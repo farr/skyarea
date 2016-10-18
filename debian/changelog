@@ -1,0 +1,13 @@
+skyarea (0.2-1) unstable; urgency=medium
+
+  * Move Debian packaging version control to git.ligo.org.
+  * Add automatically generated help2man man pages.
+  * ER10 release.
+
+ -- Leo Singer <leo.singer@ligo.org>  Tue, 18 Oct 2016 13:16:32 -0400
+
+skyarea (0.1-1) unstable; urgency=medium
+
+  * Initial release.
+
+ -- Leo Singer <leo.singer@ligo.org>  Wed, 22 Jun 2016 15:57:10 -0400
