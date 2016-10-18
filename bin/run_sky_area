@@ -10,7 +10,7 @@ from glue.ligolw import ligolw
 from glue.ligolw import lsctables
 from glue.ligolw import table
 from glue.ligolw import utils
-import lalinference.cmap
+import lalinference.plot.cmap
 from lalinference.io import fits
 from lalinference.io import hdf5
 from lalinference import plot
