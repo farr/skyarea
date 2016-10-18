@@ -4,7 +4,7 @@ Sky Areas
 Computing credible areas and p-values for MCMC samples on the sky
 using a clustered-kernel-density estimate (similar to X-Means).
 
-See the project documentation at http://farr.github.io/skyarea/ .
+See the project documentation at http://skyarea.readthedocs.io
 
 The code is released under the MIT license; see the LICENSE file for
 more information.
