@@ -1,0 +1,29 @@
+Source: skyarea
+Priority: optional
+Maintainer: Leo Singer <leo.singer@ligo.org>
+Homepage: http://farr.github.io/skyarea/
+Section: python
+Build-Depends:
+ python,
+ python-numpy,
+ python-matplotlib,
+ python-scipy,
+ python-healpy,
+ python-glue,
+ lalinference-python,
+ python-setuptools,
+ debhelper (>= 9),
+ dh-python,
+ help2man
+X-Python-Version: >= 2.7
+Standards-Version: 3.9.8
+
+Package: python-skyarea
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Compute credible regions on the sky from MCMC samples - Python
+ Python package for computing credible areas and p-values for MCMC samples on
+ the sky using a clustered-kernel-density estimate (similar to X-Means). Used
+ in LIGO/Virgo sky localization postprocessing.
+ .
+ This package provides modules and programs for Python 2.
