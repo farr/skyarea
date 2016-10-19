@@ -1,6 +1,6 @@
 Summary: Compute credible regions on the sky from RA-DEC MCMC samples
 Name: skyarea
-Version: 0.2
+Version: 0.2.1
 Release: 1%{?dist}
 Source: https://github.com/farr/skyarea/archive/v%{version}/%{name}-%{version}.tar.gz
 License: MIT
@@ -32,6 +32,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Tue Oct 18 2016 Leo Singer <leo.singer@ligo.org> 0.2.1-1
+
+- Re-release with packaging distributed in upstream tarball
+
 * Tue Oct 18 2016 Leo Singer <leo.singer@ligo.org> 0.2-1
 
 - ER10 release

@@ -1,3 +1,9 @@
+skyarea (0.2.1-1) UNRELEASED; urgency=medium
+
+  * Re-release with packaging distributed in upstream source.
+
+ -- Leo Singer <leo.singer@ligo.org>  Tue, 18 Oct 2016 20:17:38 -0500
+
 skyarea (0.2-1) unstable; urgency=medium
 
   * Move Debian packaging version control to git.ligo.org.
