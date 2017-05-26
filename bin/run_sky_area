@@ -160,34 +160,36 @@ if __name__ == '__main__':
         from astropy.table import Table
         data = Table.read(args.samples, format='ascii')
 
-    if args.enable_distance_map:
-        try:
-            dist = data['dist']
-        except KeyError:
-            try:
-                dist = data['distance']
-            except KeyError:
-                parser.error("The posterior samples file '{0}' does not have a distance column named 'dist' or 'distance'.  Cannot generate distance map.".format(args.samples))
-        pts = np.column_stack((data['ra'], data['dec'], dist))
-        KDEClass = sac.Clustered3DKDEPosterior
-    else:
-        pts = np.column_stack((data['ra'], data['dec']))
-        KDEClass = sac.ClusteredSkyKDEPosterior
-
-    if args.maxpts is not None:
-        pts = np.random.permutation(pts)[:args.maxpts, :]
-
-    if args.loadpost is None:
-        skypost = KDEClass(pts, ntrials=args.trials)
-    else:
-        with open(args.loadpost, 'r') as inp:
-            skypost = pickle.load(inp)
+    # Shuffle the data and take a random subsample.
+    # Note that if arg.maxpts > len(data), then this
+    # just selects the entire array.
+    np.random.shuffle(data)
+    data = data[:args.maxpts]
 
     mkpath(args.outdir)
 
-    print('pickling ...')
-    with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
-        pickle.dump(skypost, out)
+    if args.loadpost is None:
+        if args.enable_distance_map:
+            try:
+                dist = data['dist']
+            except KeyError:
+                try:
+                    dist = data['distance']
+                except KeyError:
+                    parser.error("The posterior samples file '{0}' does not have a distance column named 'dist' or 'distance'.  Cannot generate distance map.".format(args.samples))
+            pts = np.column_stack((data['ra'], data['dec'], dist))
+            KDEClass = sac.Clustered3DKDEPosterior
+        else:
+            pts = np.column_stack((data['ra'], data['dec']))
+            KDEClass = sac.ClusteredSkyKDEPosterior
+        skypost = KDEClass(pts, ntrials=args.trials)
+
+        print('pickling ...')
+        with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
+            pickle.dump(skypost, out)
+    else:
+        with open(args.loadpost, 'r') as inp:
+            skypost = pickle.load(inp)
 
     # First check if injection file is given and fill and auxiliary dictionary
     injpos = None
