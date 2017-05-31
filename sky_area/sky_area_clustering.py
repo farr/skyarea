@@ -328,15 +328,21 @@ class ClusteredSkyKDEPosterior(object):
         self._set_up_kmeans(mid_k, mid_means, mid_assign)
 
     def _set_up_optimal_kmeans(self, k, ntrials):
-        best_bic = np.NINF
+        self._set_up_kmeans(k)
 
-        for i in range(ntrials):
+        best_means = self.means
+        best_assign = self.assign
+        best_bic = self._bic()
+
+        print('k = ', k, 'ntrials = ', ntrials, 'bic = ', best_bic)
+
+        for i in range(ntrials - 1):
             self._set_up_kmeans(k)
             bic = self._bic()
 
             print('k = ', k, 'ntrials = ', ntrials, 'bic = ', bic)
 
-            if bic >= best_bic:
+            if bic > best_bic:
                 best_means = self.means
                 best_assign = self.assign
                 best_bic = bic
