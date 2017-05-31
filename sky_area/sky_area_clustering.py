@@ -762,7 +762,7 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         #   overall constraint that the weights must sum to one)
         nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
 
-        pts = self.kde_pts.copy()
+        pts = self.kde_pts
 
         return (np.sum(np.log(self.posterior_cartesian(pts))) -
                 nparams/2.0*np.log(npts))
