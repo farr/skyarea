@@ -255,7 +255,33 @@ class ClusteredSkyKDEPosterior(object):
         """
         return self._greedy_posteriors
 
-    def _set_up_optimal_k(self):
+    def _set_up_optimal_k(self, method='brute'):
+        {
+            'brute': self._set_up_optimal_k_brute,
+            'bracket': self._set_up_optimal_k_bracket
+        }[method]()
+
+    def _set_up_optimal_k_brute(self):
+        self._set_up_kmeans(1)
+        ks = [1]
+        bics = [self._bic()]
+        assigns = [self.assign]
+        means = [self.means]
+        for k in range(2, 41):
+            self._set_up_optimal_kmeans(k, self.ntrials)
+            ks.append(k)
+            bics.append(self._bic())
+            assigns.append(self.assign)
+            means.append(self.means)
+        i = np.argmax(bics)
+        bic = bics[i]
+        k = ks[i]
+        assign = assigns[i]
+        means = means[i]
+        print('Found best k, BIC: ', k, bic)
+        self._set_up_kmeans(k, means, assign)
+
+    def _set_up_optimal_k_bracket(self):
         self._set_up_kmeans(1)
         low_bic = self._bic()
         low_assign = self.assign
