@@ -8,7 +8,7 @@ Group: Development/Libraries
 BuildArch: noarch
 Vendor: Will M. Farr <will.farr@ligo.org>
 Packager: Leo Singer <leo.singer@ligo.org>
-Requires: numpy python-matplotlib scipy healpy glue lalinference-python
+Requires: numpy python-matplotlib scipy python-six healpy glue lalinference-python
 Url: http://farr.github.io/skyarea/
 BuildRequires: python-setuptools
 

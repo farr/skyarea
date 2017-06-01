@@ -18,7 +18,7 @@ import healpy as hp
 import numpy as np
 import os
 import sys
-import pickle
+import six.moves.cPickle as pickle
 import sky_area.sky_area_clustering as sac
 
 import matplotlib.pyplot as plt
