@@ -255,13 +255,7 @@ class ClusteredSkyKDEPosterior(object):
         """
         return self._greedy_posteriors
 
-    def _set_up_optimal_k(self, method='brute'):
-        {
-            'brute': self._set_up_optimal_k_brute,
-            'bracket': self._set_up_optimal_k_bracket
-        }[method]()
-
-    def _set_up_optimal_k_brute(self):
+    def _set_up_optimal_k(self):
         self._set_up_kmeans(1)
         ks = [1]
         bics = [self._bic()]
@@ -280,78 +274,6 @@ class ClusteredSkyKDEPosterior(object):
         means = means[i]
         print('Found best k, BIC: ', k, bic)
         self._set_up_kmeans(k, means, assign)
-
-    def _set_up_optimal_k_bracket(self):
-        self._set_up_kmeans(1)
-        low_bic = self._bic()
-        low_assign = self.assign
-        low_means = self.means
-        low_k = 1
-
-        mid_bic = self._set_up_optimal_kmeans(2, self.ntrials)
-        mid_assign = self.assign
-        mid_means = self.means
-        mid_k = 2
-
-        high_bic = self._set_up_optimal_kmeans(4, self.ntrials)
-        high_assign = self.assign
-        high_means = self.means
-
-        low_k, mid_k, high_k = 1, 2, 4
-
-        while high_bic > mid_bic:
-            print('extending ks: ', (low_k, mid_k, high_k))
-            print('with bics: ', (low_bic, mid_bic, high_bic))
-
-            low_k, mid_k = mid_k, high_k
-            low_bic, mid_bic = mid_bic, high_bic
-            low_means, mid_means = mid_means, high_means
-            low_assign, mid_assign = mid_assign, high_assign
-
-            high_k = 2*mid_k
-            high_bic = self._set_up_optimal_kmeans(high_k, self.ntrials)
-            high_means = self.means
-            high_assign = self.assign
-
-        while high_k - low_k > 2:
-            print('shrinking ks: ', (low_k, mid_k, high_k))
-            print('with bics: ', (low_bic, mid_bic, high_bic))
-
-            if high_k - mid_k > mid_k - low_k:
-                k = mid_k + (high_k - mid_k)/2
-                bic = self._set_up_optimal_kmeans(k, self.ntrials)
-                means = self.means
-                assign = self.assign
-
-                if bic > mid_bic:
-                    low_k, mid_k = mid_k, k
-                    low_bic, mid_bic = mid_bic, bic
-                    low_means, mid_means = mid_means, means
-                    low_assign, mid_assign = mid_assign, assign
-                else:
-                    high_k = k
-                    high_bic = bic
-                    high_means = means
-                    high_assign = assign
-            else:
-                k = low_k + (mid_k - low_k)/2
-                bic = self._set_up_optimal_kmeans(k, self.ntrials)
-                means = self.means
-                assign = self.assign
-
-                if bic > mid_bic:
-                    mid_k, high_k = k, mid_k
-                    mid_bic, high_bic = bic, mid_bic
-                    mid_means, high_means = means, mid_means
-                    mid_assign, high_assign = assign, mid_assign
-                else:
-                    low_k = k
-                    low_bic = bic
-                    low_means = means
-                    low_assign = assign
-
-        print('Found best k, BIC: ', mid_k, mid_bic)
-        self._set_up_kmeans(mid_k, mid_means, mid_assign)
 
     def _set_up_optimal_kmeans(self, k, ntrials):
         self._set_up_kmeans(k)
