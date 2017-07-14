@@ -27,9 +27,12 @@ def km_assign(mus, cov, pts):
 
     for i, mu in enumerate(mus):
         dx = pts - mu
-        dists[i, :] = np.sum(dx * nl.solve(cov, dx.T).T, axis=1)
+        try:
+            dists[i, :] = np.sum(dx * nl.solve(cov, dx.T).T, axis=1)
+        except nl.LinAlgError:
+            dists[i, :] = np.nan
 
-    return np.argmin(dists, axis=0)
+    return np.nanargmin(dists, axis=0)
 
 
 def km_centroids(pts, assign, k):
@@ -267,7 +270,7 @@ class ClusteredSkyKDEPosterior(object):
             bics.append(self._bic())
             assigns.append(self.assign)
             means.append(self.means)
-        i = np.argmax(bics)
+        i = np.nanargmax(bics)
         bic = bics[i]
         k = ks[i]
         assign = assigns[i]
@@ -287,10 +290,13 @@ class ClusteredSkyKDEPosterior(object):
         for i in range(ntrials - 1):
             self._set_up_kmeans(k)
             bic = self._bic()
+            assert np.isnan(bic) or bic < np.inf
 
             print('k = ', k, 'ntrials = ', ntrials, 'bic = ', bic)
 
-            if bic > best_bic:
+            # The second clause is necessary to work around the corner case
+            # that the initial value of best_bic is nan.
+            if bic > best_bic or (np.isnan(best_bic) and not np.isnan(bic)):
                 best_means = self.means
                 best_assign = self.assign
                 best_bic = bic
@@ -309,14 +315,25 @@ class ClusteredSkyKDEPosterior(object):
 
         self._kdes = []
         self._weights = []
-        ndim = self.kde_pts.shape[1]
         for i in range(k):
             sel = (self.assign == i)
-            # If there are fewer points than degrees of freedom, then don't
-            # bother adding a KDE for that cluster; its covariance would be
-            # singular.
-            if np.sum(sel) > ndim:
-                self._kdes.append(gaussian_kde(self.kde_pts[sel, :].T))
+            pts = self.kde_pts[sel, :]
+            ndim = pts.shape[1]
+            # Equivalent to but faster than len(set(pts))
+            nuniq = len(np.unique(
+                pts.view('V{}'.format(ndim * pts.dtype.itemsize))))
+            # Skip if there are fewer unique points than dimensions
+            if nuniq <= ndim:
+                continue
+            try:
+                kde = gaussian_kde(pts.T)
+            except (nl.LinAlgError, ValueError):
+                # If there are fewer unique points than degrees of freedom,
+                # then the KDE will fail because the covariance matrix is
+                # singular. In that case, don't bother adding that cluster.
+                pass
+            else:
+                self._kdes.append(kde)
                 self._weights.append(float(np.sum(sel)))
         self._weights = np.array(self.weights)
 
