@@ -1,6 +1,8 @@
 from __future__ import print_function
 import warnings
 import bisect as bs
+from .eigenframe import EigenFrame
+from astropy.coordinates import SkyCoord
 import healpy as hp
 import numpy as np
 import numpy.linalg as nl
@@ -149,9 +151,11 @@ class ClusteredSkyKDEPosterior(object):
         """
         self._acc = acc
 
-        pts = pts.copy()
-        pts[:, 1] = np.sin(pts[:, 1])
-        self._pts = pts
+        # Find eigenbasis of sample points
+        pts = SkyCoord(*pts.T, unit='rad')
+        self._frame = EigenFrame.for_coords(pts)
+        pts = pts.transform_to(self._frame).spherical
+        self._pts = pts = np.column_stack((pts.lon.rad, np.sin(pts.lat.rad)))
 
         ppts = np.random.permutation(pts)
 
@@ -341,10 +345,9 @@ class ClusteredSkyKDEPosterior(object):
         self._weights = self._weights / np.sum(self._weights)
 
     def _set_up_greedy_order(self):
-        pts = self.ranking_pts.copy()
-        pts[:, 1] = np.arcsin(pts[:, 1])
+        pts = self.ranking_pts
 
-        posts = self.posterior(pts)
+        posts = self._posterior(pts)
         self._greedy_order = np.argsort(posts)[::-1]
         self._greedy_posteriors = posts[self.greedy_order]
 
@@ -353,10 +356,11 @@ class ClusteredSkyKDEPosterior(object):
         at the given points in RA-DEC.
 
         """
-        pts = pts.copy()
-        pts = np.atleast_2d(pts)
-        pts[:, 1] = np.sin(pts[:, 1])
+        pts = SkyCoord(*pts.T, unit='rad').transform_to(self._frame).spherical
+        pts = np.column_stack((pts.lon.rad, np.sin(pts.lat.rad)))
+        return self._posterior(pts)
 
+    def _posterior(self, pts):
         post = np.zeros(pts.shape[0])
 
         ras = pts[:, 0]
@@ -364,17 +368,17 @@ class ClusteredSkyKDEPosterior(object):
 
         for dra in [0.0, 2.0*np.pi, -2.0*np.pi]:
             pts = np.column_stack((ras+dra, sin_decs))
-            post += self._posterior(pts)
+            post += self._posterior1(pts)
 
             pts = np.column_stack((ras+dra, 2.0 - sin_decs))
-            post += self._posterior(pts)
+            post += self._posterior1(pts)
 
             pts = np.column_stack((ras+dra, -2.0 - sin_decs))
-            post += self._posterior(pts)
+            post += self._posterior1(pts)
 
         return post
 
-    def _posterior(self, pts):
+    def _posterior1(self, pts):
         post = np.zeros(pts.shape[0])
 
         for kde, weight in zip(self.kdes, self.weights):
@@ -406,10 +410,9 @@ class ClusteredSkyKDEPosterior(object):
         #   overall constraint that the weights must sum to one)
         nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
 
-        pts = self.kde_pts.copy()
-        pts[:, 1] = np.arcsin(pts[:, 1])
+        pts = self.kde_pts
 
-        return np.sum(np.log(self.posterior(pts))) - nparams/2.0*np.log(npts)
+        return np.sum(np.log(self._posterior(pts))) - nparams/2.0*np.log(npts)
 
     def _split_range(self, n, nmax=100000):
         if n < nmax:
@@ -675,6 +678,14 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
                                   ds*np.sin(decs)))
 
         return xyzpts
+
+    def _posterior(self, pts):
+        post = np.zeros(pts.shape[0])
+
+        for kde, weight in zip(self.kdes, self.weights):
+            post += weight*kde(pts.T)
+
+        return post
 
     def posterior(self, pts):
         """Given an array of positions in RA, DEC, dist, compute the 3D
