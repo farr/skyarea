@@ -31,14 +31,7 @@ class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
 lsctables.use_in(LIGOLWContentHandler)
 
 
-def plot_skymap(
-        output, skypost, pixresol=np.pi/180.0, nest=True, inj=None, fast=True):
-    nside = 1
-    while hp.nside2resol(nside) > pixresol:
-        nside *= 2
-
-    pix_post = skypost.as_healpix(nside, nest=nest, fast=fast)
-
+def plot_skymap(output, pix_post, nest=True, inj=None):
     # Discard distance layers if this is a 3D HEALPix map.
     if np.ndim(pix_post) > 1:
         pix_post = pix_post[0]
@@ -213,14 +206,6 @@ if __name__ == '__main__':
             injpos = {'ra': inj.ra, 'dec': inj.dec, 'id': inj.simulation_id}
             print(' yes')
 
-    print('plotting skymap ...')
-    if args.pdf:
-        skymap_out = os.path.join(args.outdir, 'skymap.pdf')
-    else:
-        skymap_out = os.path.join(args.outdir, 'skymap.png')
-    plot_skymap(
-        skymap_out, skypost, inj=injpos, fast=not(args.slowsmoothskymaps))
-
     print('plotting cluster assignments ...')
     if args.pdf:
         assign_out = os.path.join(args.outdir, 'assign.pdf')
@@ -242,8 +227,14 @@ if __name__ == '__main__':
 
     fits_nest = True
 
+    print('plotting skymap ...')
+    if args.pdf:
+        skymap_out = os.path.join(args.outdir, 'skymap.pdf')
+    else:
+        skymap_out = os.path.join(args.outdir, 'skymap.png')
     hpmap = skypost.as_healpix(
         args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
+    plot_skymap(skymap_out, hpmap, nest=fits_nest, inj=injpos)
 
     meta = {'creator': parser.get_prog_name()}
     if args.objid is not None:
