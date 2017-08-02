@@ -53,17 +53,10 @@ if __name__ == '__main__':
                       help='number of trials at each clustering number '
                       '[default: %default]')
 
-    parser.add_option('--slowsmoothskymaps', default=False,
-                      action='store_true', help='use a faster algorithm for '
-                      'producing skymaps (that are "blocky")')
-
     parser.add_option('--disable-distance-map', dest='enable_distance_map',
                       action='store_false', default=True,
                       help='disable output of healpy map of '
                       'distance mean and s.d.')
-
-    parser.add_option('--nside', type=int, default=512,
-                      help='HEALPix resolution [default: %default]')
 
     parser.add_option('--objid', help='event ID to store in FITS header')
 
@@ -128,11 +121,7 @@ if __name__ == '__main__':
 
     print('making skymap ...')
 
-    fits_nest = True
-
-    hpmap = skypost.as_healpix(
-        args.nside, nest=fits_nest, fast=not(args.slowsmoothskymaps))
-
+    hpmap = skypost.as_healpix()
     meta = {'creator': parser.get_prog_name()}
     if args.objid is not None:
         meta['objid'] = args.objid
@@ -152,4 +141,4 @@ if __name__ == '__main__':
             "Cannot find time, time_mean, or time maxl variable in posterior.")
 
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
-                       hpmap, nest=fits_nest, **meta)
+                       hpmap, nest=True, **meta)

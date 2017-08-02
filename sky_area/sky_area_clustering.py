@@ -1,5 +1,4 @@
 from __future__ import print_function
-import warnings
 from .eigenframe import EigenFrame
 from astropy.coordinates import SkyCoord
 import healpy as hp
@@ -366,18 +365,8 @@ class ClusteredSkyKDEPosterior(object):
             cells[-nrefine:] = zip(p, new_nside, new_ipix)
         return cells
 
-    def _as_healpix_slow(self, nside, nest=True):
-        npix = hp.nside2npix(nside)
-        thetas, phis = hp.pix2ang(nside, np.arange(npix), nest=nest)
-        pixels = np.column_stack((phis, np.pi/2.0 - thetas))
-        pixel_posts = self.posterior(pixels)
-        return pixel_posts / np.sum(pixel_posts)
-
-    def _as_healpix_fast(self, nside, nest=True):
-        """Returns a healpix map of the posterior density, by default in
-        nested order.
-
-        """
+    def as_healpix(self):
+        """Returns a healpix map of the posterior density."""
         cell_post, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
 
         max_nside = max(cell_nside)
@@ -391,33 +380,7 @@ class ClusteredSkyKDEPosterior(object):
             ipix1 = (cipix + 1) * cnpts
             map[ipix0:ipix1] = cpost
 
-        # FIXME: we're ignoring the requested value of nside
-        warnings.warn('Ignoring user-provided value of nside because it is not '
-                      'currently implemented for the fast pixelization.',
-                      RuntimeWarning, stacklevel=2)
-
-        if nest:
-            pass  # Map is already in nested order
-        else:
-            map = hp.pixelfunc.reorder(map, n2r=True)
-
         return map / np.sum(map)
-
-    def as_healpix(self, nside, nest=True, fast=True):
-        """Return a healpix map of the posterior at the given resolution.
-
-        :param nside: The resolution parameter.
-
-        :param nest: If ``True``, map is in nested order.
-
-        :param fast: If ``True`` produce a map more quickly, at the
-          cost of some pixellation.
-
-        """
-        if fast:
-            return self._as_healpix_fast(nside, nest=nest)
-        else:
-            return self._as_healpix_slow(nside, nest=nest)
 
 
 class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
@@ -531,42 +494,8 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         return (np.sum(np.log(self.posterior_cartesian(pts))) -
                 nparams/2.0*np.log(npts))
 
-    def _as_healpix_slow(self, nside, nest=True):
-        r"""Returns a healpix map with the mean and standard deviations
-        of :math:`d` for any pixel containing at least one posterior
-        sample.
-
-        """
-        npix = hp.nside2npix(nside)
-        pixarea = hp.nside2pixarea(nside)
-        datasets = [kde.dataset for kde in self.kdes]
-        inverse_covariances = [kde.inv_cov for kde in self.kdes]
-        weights = self.weights
-
-        # Compute marginal probability, conditional mean, and conditional
-        # standard deviation in all directions.
-        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
-            np.asarray(hp.pix2vec(nside, ipix, nest=nest)),
-            datasets, inverse_covariances, weights)
-            for ipix in range(npix)])
-
-        prob *= pixarea
-        # Normalize marginal probability...
-        # just to be safe. It should be normalized already.
-        prob /= prob.sum()
-
-        # Apply method of moments to find location parameter, scale parameter,
-        # and normalization.
-        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
-
-        # Done!
-        return prob, distmu, distsigma, distnorm
-
-    def _as_healpix_fast(self, nside, nest=True):
-        """Returns a healpix map of the posterior density, by default in
-        nested order.
-
-        """
+    def as_healpix(self):
+        """Returns a healpix map of the posterior density."""
         _, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
         cell_nside = np.asarray(cell_nside)
         cell_ipix = np.asarray(cell_ipix)
@@ -611,15 +540,5 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         # Normalize marginal probability...
         # just to be safe. It should be normalized already.
         map[0] /= map[0].sum()
-
-        # FIXME: we're ignoring the requested value of nside
-        warnings.warn('Ignoring user-provided value of nside because it is not '
-                      'currently implemented for the fast pixelization.',
-                      RuntimeWarning, stacklevel=2)
-
-        if nest:
-            pass  # Map is already in nested order
-        else:
-            map = hp.pixelfunc.reorder(map, n2r=True)
 
         return map
