@@ -1,12 +1,10 @@
 from __future__ import print_function
 import warnings
-import bisect as bs
 from .eigenframe import EigenFrame
 from astropy.coordinates import SkyCoord
 import healpy as hp
 import numpy as np
 import numpy.linalg as nl
-import scipy.integrate as si
 from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance
 from lalinference.healpix_tree import (
@@ -116,18 +114,9 @@ class ClusteredSkyKDEPosterior(object):
     similar to the well-known `X-Means
     <http://www.cs.cmu.edu/~dpelleg/download/xmeans.pdf>`_ algorithm.
 
-    In order to produce an unbiased estimate of credible areas, the
-    algorithm follows a two-step process.  The set of input points is
-    divided into two independent sets.  The first of these sets is
-    used to establish a clustered KDE as described above; then the
-    second set of points is ranked under this clustered KDE to
-    establish a mapping from KDE contours to credible levels.  The
-    different point sets are accessible as the ``self.kde_pts`` and
-    ``self.ranking_pts`` arrays in the object.
-
     """
 
-    def __init__(self, pts, ntrials=5, means=None, assign=None, acc=1e-2):
+    def __init__(self, pts, ntrials=5, means=None, assign=None):
         """Set up the posterior with the given RA-DEC points.
 
         :param pts: The sky points, in RA-DEC coordinates.
@@ -145,41 +134,19 @@ class ClusteredSkyKDEPosterior(object):
           optimized using a BIC criterion on the model that ``pts``
           are drawn from the given clustered KDE.
 
-        :param acc: The (relative) accuracy with which to compute sky
-          areas.
-
         """
-        self._acc = acc
-
         # Find eigenbasis of sample points
         pts = SkyCoord(*pts.T, unit='rad')
         self._frame = EigenFrame.for_coords(pts)
         pts = pts.transform_to(self._frame).spherical
-        self._pts = pts = np.column_stack((pts.lon.rad, np.sin(pts.lat.rad)))
+        self._pts = np.column_stack((pts.lon.rad, np.sin(pts.lat.rad)))
 
-        ppts = np.random.permutation(pts)
-
-        self._kde_pts = ppts[::2]
-        self._ranking_pts = ppts[1::2]
         self._ntrials = ntrials
 
         if means is None or assign is None:
             self._set_up_optimal_k()
         else:
             self._set_up_kmeans(means.shape[0], means, assign)
-
-        self._set_up_greedy_order()
-
-    @property
-    def acc(self):
-        """Integration accuracy for sky/searched areas.
-
-        """
-        return self._acc
-
-    @acc.setter
-    def acc(self, a):
-        self._acc = a
 
     @property
     def ntrials(self):
@@ -195,21 +162,6 @@ class ClusteredSkyKDEPosterior(object):
 
         """
         return self._pts
-
-    @property
-    def kde_pts(self):
-        """Return the subset of points used to construct the KDE.
-
-        """
-        return self._kde_pts
-
-    @property
-    def ranking_pts(self):
-        """Return the set of points used that are ranked under the KDE to
-        establish credible levels.
-
-        """
-        return self._ranking_pts
 
     @property
     def k(self):
@@ -246,21 +198,6 @@ class ClusteredSkyKDEPosterior(object):
 
         """
         return self._weights
-
-    @property
-    def greedy_order(self):
-        """Returns the ordering of ``self.ranking_pts`` from highest to lowest
-        posterior values.
-
-        """
-        return self._greedy_order
-
-    @property
-    def greedy_posteriors(self):
-        """Returns the posterior values at ``self.ranking_pts`` in greedy order.
-
-        """
-        return self._greedy_posteriors
 
     def _set_up_optimal_k(self):
         self._set_up_kmeans(1)
@@ -312,7 +249,7 @@ class ClusteredSkyKDEPosterior(object):
         self._k = k
 
         if means is None or assign is None:
-            self._means, self._assign = k_means(self.kde_pts, k)
+            self._means, self._assign = k_means(self.pts, k)
         else:
             self._means = means
             self._assign = assign
@@ -321,7 +258,7 @@ class ClusteredSkyKDEPosterior(object):
         self._weights = []
         for i in range(k):
             sel = (self.assign == i)
-            pts = self.kde_pts[sel, :]
+            pts = self.pts[sel, :]
             ndim = pts.shape[1]
             # Equivalent to but faster than len(set(pts))
             nuniq = len(np.unique(
@@ -343,13 +280,6 @@ class ClusteredSkyKDEPosterior(object):
 
         # Normalize the weights
         self._weights = self._weights / np.sum(self._weights)
-
-    def _set_up_greedy_order(self):
-        pts = self.ranking_pts
-
-        posts = self._posterior(pts)
-        self._greedy_order = np.argsort(posts)[::-1]
-        self._greedy_posteriors = posts[self.greedy_order]
 
     def posterior(self, pts):
         """Returns the clustered KDE estimate of the sky density per steradian
@@ -398,7 +328,8 @@ class ClusteredSkyKDEPosterior(object):
 
         """
 
-        npts, ndim = self.kde_pts.shape
+        pts = self.pts
+        npts, ndim = pts.shape
 
         # The number of parameters is:
         #
@@ -410,26 +341,7 @@ class ClusteredSkyKDEPosterior(object):
         #   overall constraint that the weights must sum to one)
         nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
 
-        pts = self.kde_pts
-
         return np.sum(np.log(self._posterior(pts))) - nparams/2.0*np.log(npts)
-
-    def _split_range(self, n, nmax=100000):
-        if n < nmax:
-            return [(0, n)]
-        else:
-            lows = list(range(0, n, nmax))
-            highs = lows[1:]
-            highs.append(n)
-
-            return list(zip(lows, highs))
-
-    def _adaptive_grid(self, order=HEALPIX_MACHINE_ORDER):
-        theta = np.arccos(self.pts[:, 1])
-        phi = self.pts[:, 0]
-        ipix = hp.ang2pix(
-            HEALPIX_MACHINE_NSIDE, theta, phi, nest=True).astype(np.uint64)
-        return HEALPixTree(ipix, max_samples_per_pixel=1, max_order=order)
 
     def _bayestar_adaptive_grid(self, top_nside=16, rounds=8):
         """Implement of the BAYESTAR adaptive mesh refinement scheme as
@@ -507,133 +419,16 @@ class ClusteredSkyKDEPosterior(object):
         else:
             return self._as_healpix_slow(nside, nest=nest)
 
-    def _fast_area_within(self, levels):
-        grid = self._adaptive_grid()
-
-        nside, ipix = np.transpose(list(grid.visit(extra=False)))
-        theta, phi = hp.pix2ang(nside, ipix, nest=True)
-        ra = phi
-        dec = 0.5 * np.pi - theta
-        plevels = self.posterior(np.column_stack((ra, dec)))
-        pareas = hp.nside2pixarea(nside)
-
-        areas = []
-        for l in levels:
-            areas.append(np.sum(pareas[plevels >= l]))
-
-        return np.array(areas)
-
-    def _area_within_nside(self, levels, nside):
-        npix = hp.nside2npix(nside)
-        pixarea = hp.nside2pixarea(nside)
-
-        areas = 0.0
-        for low, high in self._split_range(npix):
-            thetas, phis = hp.pix2ang(
-                nside, np.arange(low, high, dtype=np.int))
-            pixels = np.column_stack((phis, np.pi/2.0 - thetas))
-
-            pixel_posts = self.posterior(pixels)
-
-            sub_areas = np.array(
-                [pixarea*np.sum(pixel_posts > l) for l in levels])
-            areas = areas + sub_areas
-
-        return areas
-
-    def _area_within(self, levels, nside_max=512):
-        levels = np.atleast_1d(levels)
-
-        nside = 1
-        old_areas = np.zeros(levels.shape[0])
-        while True:
-            nside *= 2
-            areas = self._area_within_nside(levels, nside)
-
-            extrap_areas = (4.0*areas - old_areas)/3.0
-
-            error = np.abs((areas - extrap_areas)/extrap_areas)
-
-            print('Calculated sky area at nside = ', nside)
-            print('Areas are ', extrap_areas)
-            print()
-
-            if np.all(areas > 0) and np.all(error < self.acc):
-                return extrap_areas
-            elif nside >= nside_max:
-                print('Ending sky area calculation at nside = ', nside)
-                return extrap_areas
-            else:
-                old_areas = areas
-
-    def sky_area(self, cls, fast=True):
-        """Returns the sky area occupied by the given list of credible levels.
-        If ``fast``, then use a fast algorithm that is usually
-        accurate but not guaranteed to converge to the correct answer.
-
-        """
-        cls = np.atleast_1d(cls)
-        idxs = [int(round(cl*self.ranking_pts.shape[0])) for cl in cls]
-        missed = False
-        if idxs[-1] == len(self.greedy_posteriors):
-            # this can happen if the injected position is totally missed
-            idxs[-1] -= 1
-            missed = True
-
-        post_levels = [self.greedy_posteriors[i] for i in idxs]
-
-        if fast:
-            out = self._fast_area_within(post_levels)
-        else:
-            out = self._area_within(post_levels)
-
-        if missed:
-            # if missed set the searched are to be the whole sky
-            out[-1] = 4*np.pi
-        return out
-
-    def searched_area(self, pts, fast=True):
-        """Returns the sky area that must be searched using a greedy algorithm
-        before encountering the given points in the sky.  If ``fast``,
-        then use a fast algorithm that is usually accurate but not
-        guaranteed to converge to the correct answer.
-
-        """
-        post_levels = self.posterior(pts)
-
-        if fast:
-            return self._fast_area_within(post_levels)
-        else:
-            return self._area_within(post_levels)
-
-    def p_values(self, pts):
-        """Returns the posterior greedy p-values (quantile in the posterior
-        distribution) for the given points.
-
-        """
-
-        post_levels = self.posterior(pts)
-
-        # Need smallest to largest, not other way around
-        greedy_levels = self.greedy_posteriors[::-1]
-        n = greedy_levels.shape[0]
-
-        indexes = []
-        for pl in post_levels:
-            indexes.append(bs.bisect(greedy_levels, pl))
-
-        return 1.0 - np.array(indexes) / float(n)
-
 
 class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
     """Like :class:`ClusteredSkyKDEPosterior`, but clusters in 3D
     space.  Can compute volumetric posterior density (per cubic Mpc),
     and also produce Healpix maps of the mean and standard deviation
-    of the log-distance.  Does not currently produce credible volumes.
+    of the log-distance.
 
     """
 
-    def __init__(self, pts, ntrials=5, means=None, assign=None, acc=1e-2):
+    def __init__(self, pts, ntrials=5, means=None, assign=None):
         """Initialise the posterior object.
 
         :param pts: A ``(npts, 3)`` shaped array.  The first column is
@@ -646,26 +441,14 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         :param assign: If given, use these assignments for the clustering.
         """
-        self._acc = acc
+        self._pts = self._pts_to_xyzpts(pts)
 
-        pts = pts.copy()
-        _pts = pts.copy()[:, :-1]
-        _pts[:, 1] = np.sin(_pts[:, 1])
-        self._pts = _pts
-
-        indices = np.arange(len(pts))
-        np.random.shuffle(indices)
-
-        self._kde_pts = self._pts_to_xyzpts(pts[indices][::2])
-        self._ranking_pts = _pts[indices][1::2]
         self._ntrials = ntrials
 
         if means is None or assign is None:
             self._set_up_optimal_k()
         else:
             self._set_up_kmeans(means.shape[0], means, assign)
-
-        self._set_up_greedy_order()
 
     @staticmethod
     def _pts_to_xyzpts(pts):
@@ -732,7 +515,8 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         """
 
-        npts, ndim = self.kde_pts.shape
+        pts = self.pts
+        npts, ndim = pts.shape
 
         # The number of parameters is:
         #
@@ -743,8 +527,6 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
         # * one weighting factor for the cluster (minus one for the
         #   overall constraint that the weights must sum to one)
         nparams = self.k*ndim + self.k*((ndim+1)*(ndim)/2) + self.k - 1
-
-        pts = self.kde_pts
 
         return (np.sum(np.log(self.posterior_cartesian(pts))) -
                 nparams/2.0*np.log(npts))
