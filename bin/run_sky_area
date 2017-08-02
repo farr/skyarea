@@ -120,25 +120,24 @@ if __name__ == '__main__':
     plot_assign(assign_out, skypost)
 
     print('making skymap ...')
-
     hpmap = skypost.as_healpix()
-    meta = {'creator': parser.get_prog_name()}
+    hpmap.meta['creator'] = parser.get_prog_name()
     if args.objid is not None:
-        meta['objid'] = args.objid
+        hpmap.meta['objid'] = args.objid
     if args.enable_distance_map:
-        meta['distmean'] = np.mean(dist)
-        meta['diststd'] = np.std(dist)
+        hpmap.meta['distmean'] = np.mean(dist)
+        hpmap.meta['diststd'] = np.std(dist)
 
     names = data.dtype.names
     if 'time' in names:
-        meta['gps_time'] = data['time'].mean()
+        hpmap.meta['gps_time'] = data['time'].mean()
     elif 'time_mean' in names:
-        meta['gps_time'] = data['time_mean'].mean()
+        hpmap.meta['gps_time'] = data['time_mean'].mean()
     elif 'time_maxl' in names:
-        meta['gps_time'] = data['time_maxl'].mean()
+        hpmap.meta['gps_time'] = data['time_maxl'].mean()
     else:
         parser.error(
             "Cannot find time, time_mean, or time maxl variable in posterior.")
 
     fits.write_sky_map(os.path.join(args.outdir, args.fitsoutname),
-                       hpmap, nest=True, **meta)
+                       hpmap, nest=True)

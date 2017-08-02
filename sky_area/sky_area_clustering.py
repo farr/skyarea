@@ -1,11 +1,12 @@
 from __future__ import print_function
 from .eigenframe import EigenFrame
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 import healpy as hp
 import numpy as np
 import numpy.linalg as nl
 from scipy.stats import gaussian_kde
-from lalinference.bayestar import distance
+from lalinference.bayestar import distance, moc
 from lalinference.healpix_tree import (
     HEALPIX_MACHINE_ORDER, HEALPIX_MACHINE_NSIDE, HEALPixTree)
 
@@ -367,20 +368,20 @@ class ClusteredSkyKDEPosterior(object):
 
     def as_healpix(self):
         """Returns a healpix map of the posterior density."""
-        cell_post, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
+        post, nside, ipix = zip(*self._bayestar_adaptive_grid())
+        post = np.asarray(list(post))
+        nside = np.asarray(list(nside))
+        ipix = np.asarray(list(ipix))
 
-        max_nside = max(cell_nside)
-        max_npix = hp.nside2npix(max_nside)
-        map = np.empty(max_npix)
+        # Make sure that sky map is normalized (it should be already)
+        post /= np.sum(post * hp.nside2pixarea(nside))
 
-        for cpost, cnside, cipix in zip(cell_post, cell_nside, cell_ipix):
-            cnpix = hp.nside2npix(cnside)
-            cnpts = (max_npix // cnpix)
-            ipix0 = cipix * cnpts
-            ipix1 = (cipix + 1) * cnpts
-            map[ipix0:ipix1] = cpost
+        # Convert from NESTED to UNIQ pixel indices
+        order = np.log2(nside).astype(int)
+        uniq = moc.nest2uniq(order.astype(np.int8), ipix.astype(np.uint64))
 
-        return map / np.sum(map)
+        # Done!
+        return Table([uniq, post], names=['UNIQ', 'PROBDENSITY'])
 
 
 class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
@@ -433,23 +434,26 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
         return post
 
-    def posterior(self, pts):
-        """Given an array of positions in RA, DEC, dist, compute the 3D
-        volumetric posterior density (per Mpc) at those points.
+    def posterior(self, pts, distances=False):
+        """Given an array of positions in RA, DEC, compute the marginal sky
+        posterior and optinally the conditional distance parameters.
 
         """
-
         datasets = [kde.dataset for kde in self.kdes]
         inverse_covariances = [kde.inv_cov for kde in self.kdes]
         weights = self.weights
 
         pts = np.column_stack((pts, np.ones(len(pts))))
 
-        prob, _, _ = np.transpose([distance.cartesian_kde_to_moments(
+        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
             n, datasets, inverse_covariances, weights)
             for n in self._pts_to_xyzpts(pts)])
 
-        return prob
+        if distances:
+            mu, sigma, norm = distance.moments_to_parameters(mean, std)
+            return prob, mu, sigma, norm
+        else:
+            return prob
 
     def posterior_cartesian(self, pts):
         return self._posterior(pts)
@@ -496,49 +500,23 @@ class Clustered3DKDEPosterior(ClusteredSkyKDEPosterior):
 
     def as_healpix(self):
         """Returns a healpix map of the posterior density."""
-        _, cell_nside, cell_ipix = zip(*self._bayestar_adaptive_grid())
-        cell_nside = np.asarray(cell_nside)
-        cell_ipix = np.asarray(cell_ipix)
+        _, nside, ipix = zip(*self._bayestar_adaptive_grid())
+        nside = np.asarray(list(nside))
+        ipix = np.asarray(list(ipix))
 
-        max_nside = max(cell_nside)
-        max_npix = hp.nside2npix(max_nside)
-        map = np.empty(max_npix)
+        # Compute marginal probability and distance parameters.
+        theta, phi = hp.pix2ang(nside, ipix, nest=True)
+        pts = np.column_stack((phi, 0.5 * np.pi - theta))
+        post, mu, sigma, norm = self.posterior(pts, distances=True)
 
-        map = [np.empty(max_npix),
-               np.empty(max_npix),
-               np.empty(max_npix),
-               np.empty(max_npix)]
+        # Make sure that sky map is normalized (it should be already)
+        post /= np.sum(post * hp.nside2pixarea(nside))
 
-        pts = np.transpose(hp.pix2vec(cell_nside, cell_ipix, nest=True))
+        # Convert from NESTED to UNIQ pixel indices
+        order = np.log2(nside).astype(int)
+        uniq = moc.nest2uniq(order.astype(np.int8), ipix.astype(np.uint64))
 
-        datasets = [kde.dataset for kde in self.kdes]
-        inverse_covariances = [kde.inv_cov for kde in self.kdes]
-        weights = self.weights
-
-        # Compute marginal probability, conditional mean, and conditional
-        # standard deviation in all directions.
-        prob, mean, std = np.transpose([distance.cartesian_kde_to_moments(
-            pt, datasets, inverse_covariances, weights)
-            for pt in pts])
-
-        # Apply method of moments to find location parameter, scale parameter,
-        # and normalization.
-        distmu, distsigma, distnorm = distance.moments_to_parameters(mean, std)
-
-        for prob, distmu, distsigma, distnorm, cnside, cipix in zip(
-                prob, distmu, distsigma, distnorm, cell_nside, cell_ipix):
-            cnpix = hp.nside2npix(cnside)
-            cnpts = (max_npix // cnpix)
-            ipix0 = cipix * cnpts
-            ipix1 = (cipix + 1) * cnpts
-            map[0][ipix0:ipix1] = prob
-            map[1][ipix0:ipix1] = distmu
-            map[2][ipix0:ipix1] = distsigma
-            map[3][ipix0:ipix1] = distnorm
-
-        map[0] *= hp.nside2pixarea(max_nside)
-        # Normalize marginal probability...
-        # just to be safe. It should be normalized already.
-        map[0] /= map[0].sum()
-
-        return map
+        # Done!
+        return Table([uniq, post, mu, sigma, norm],
+                     names=['UNIQ', 'PROBDENSITY', 'DISTMU', 'DISTSIGMA',
+                            'DISTNORM'])
