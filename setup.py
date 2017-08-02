@@ -12,7 +12,7 @@ setup(
     license='MIT',
     keywords='MCMC credible regions skymap LIGO',
     install_requires=['astropy', 'numpy', 'matplotlib', 'scipy', 'healpy',
-                      'glue', 'six'],
+                      'six'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Science/Research',
                  'License :: OSI Approved :: MIT License',

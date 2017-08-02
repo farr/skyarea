@@ -6,15 +6,8 @@ mpl.use('Agg')
 
 from optparse import OptionParser
 from distutils.dir_util import mkpath
-from glue.ligolw import ligolw
-from glue.ligolw import lsctables
-from glue.ligolw import table
-from glue.ligolw import utils
-import lalinference.plot.cmap
 from lalinference.io import fits
 from lalinference.io import hdf5
-from lalinference import plot
-import healpy as hp
 import numpy as np
 import os
 import sys
@@ -22,39 +15,6 @@ import six.moves.cPickle as pickle
 import sky_area.sky_area_clustering as sac
 
 import matplotlib.pyplot as plt
-
-
-class LIGOLWContentHandler(ligolw.LIGOLWContentHandler):
-    pass
-
-
-lsctables.use_in(LIGOLWContentHandler)
-
-
-def plot_skymap(
-        output, skypost, pixresol=np.pi/180.0, nest=True, inj=None, fast=True):
-    nside = 1
-    while hp.nside2resol(nside) > pixresol:
-        nside *= 2
-
-    pix_post = skypost.as_healpix(nside, nest=nest, fast=fast)
-
-    # Discard distance layers if this is a 3D HEALPix map.
-    if np.ndim(pix_post) > 1:
-        pix_post = pix_post[0]
-
-    fig = plt.figure(frameon=False)
-    ax = plt.subplot(111, projection='astro hours mollweide')
-    ax.cla()
-    ax.grid()
-    plot.healpix_heatmap(
-        pix_post, nest=nest, vmin=0.0, vmax=np.max(pix_post), cmap='cylon')
-
-    if inj is not None:
-        # If using an injection file, also plot an X at the true position
-        plt.plot(inj['ra'], inj['dec'], 'kx', ms=30, mew=1)
-
-    plt.savefig(output)
 
 
 def plot_assign(output, skypost):
@@ -82,10 +42,6 @@ if __name__ == '__main__':
 
     parser.add_option('--pdf', action='store_true', default=False,
                       help='output plots in PDF format [default: PNG]')
-
-    parser.add_option('--inj', help='injection XML')
-    parser.add_option('--eventnum', default=0, type='int',
-                      help='event number [default: %default]')
 
     parser.add_option('--loadpost',
                       help='filename for pickled posterior state')
@@ -163,42 +119,14 @@ if __name__ == '__main__':
         with open(args.loadpost, 'r') as inp:
             skypost = pickle.load(inp)
 
-    # First check if injection file is given and fill and auxiliary dictionary
-    injpos = None
-    if args.inj is not None:
-        xmldoc = utils.load_filename(
-            args.inj, contenthandler=LIGOLWContentHandler)
-        try:
-            print('Checking if using a sim_inspiral table...')
-            injs = table.get_table(
-                xmldoc, lsctables.SimInspiralTable.tableName)
-            inj = injs[args.eventnum]
-            injpos = {
-                'ra': inj.longitude,
-                'dec': inj.latitude,
-                'id': inj.simulation_id}
-            print(' yes')
-        except:
-            print('Checking if using a sim_burst table...')
-            injs = table.get_table(xmldoc, lsctables.SimBurstTable.tableName)
-            inj = injs[args.eventnum]
-            injpos = {'ra': inj.ra, 'dec': inj.dec, 'id': inj.simulation_id}
-            print(' yes')
-
-    print('plotting skymap ...')
-    if args.pdf:
-        skymap_out = os.path.join(args.outdir, 'skymap.pdf')
-    else:
-        skymap_out = os.path.join(args.outdir, 'skymap.png')
-    plot_skymap(
-        skymap_out, skypost, inj=injpos, fast=not(args.slowsmoothskymaps))
-
     print('plotting cluster assignments ...')
     if args.pdf:
         assign_out = os.path.join(args.outdir, 'assign.pdf')
     else:
         assign_out = os.path.join(args.outdir, 'assign.png')
     plot_assign(assign_out, skypost)
+
+    print('making skymap ...')
 
     fits_nest = True
 
