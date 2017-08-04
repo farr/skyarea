@@ -8,7 +8,9 @@ from optparse import OptionParser
 from distutils.dir_util import mkpath
 from lalinference.io import fits
 from lalinference.io import hdf5
+from lalinference.bayestar import moc
 import numpy as np
+import healpy as hp
 import os
 import sys
 import six.moves.cPickle as pickle
@@ -99,32 +101,50 @@ if __name__ == '__main__':
             pts = np.column_stack((data['ra'], data['dec']))
         else:
             pts = np.column_stack((data['ra'], data['dec'], dist))
+        skypost2d = sac.ClusteredSkyKDEPosterior(pts, ntrials=args.trials)
         if args.enable_distance_map:
-            KDEClass = sac.Clustered3DKDEPosterior
+            skypost3d = sac.Clustered3DKDEPosterior(pts, ntrials=args.trials)
+            skyposts = (skypost2d, skypost3d)
         else:
-            KDEClass = sac.ClusteredSkyKDEPosterior
-        skypost = KDEClass(pts, ntrials=args.trials)
+            skyposts = (skypost2d,)
 
         print('pickling ...')
         with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
-            pickle.dump(skypost, out)
+            pickle.dump(skyposts, out)
     else:
         with open(args.loadpost, 'r') as inp:
-            skypost = pickle.load(inp)
+            skyposts = pickle.load(inp)
+        skypost2d = skyposts[0]
+        if args.enable_distance_map:
+            if len(skyposts) < 2:
+                parser.error("The pickle file '{0}' does not contain a 3D KDE.".foratm(args.loadpost))
+            skypost3d = skyposts[1]
 
     print('plotting cluster assignments ...')
     if args.pdf:
-        assign_out = os.path.join(args.outdir, 'assign.pdf')
+        assign_out = os.path.join(args.outdir, 'assign2d.pdf')
     else:
-        assign_out = os.path.join(args.outdir, 'assign.png')
-    plot_assign(assign_out, skypost)
+        assign_out = os.path.join(args.outdir, 'assign2d.png')
+    plot_assign(assign_out, skypost2d)
+    if args.enable_distance_map:
+        if args.pdf:
+            assign_out = os.path.join(args.outdir, 'assign3d.pdf')
+        else:
+            assign_out = os.path.join(args.outdir, 'assign3d.png')
+        plot_assign(assign_out, skypost3d)
 
     print('making skymap ...')
-    hpmap = skypost.as_healpix()
+    hpmap = skypost2d.as_healpix()
     hpmap.meta['creator'] = parser.get_prog_name()
     if args.objid is not None:
         hpmap.meta['objid'] = args.objid
     if args.enable_distance_map:
+        order, ipix = moc.uniq2nest(hpmap['UNIQ'])
+        nside = 2 ** order.astype(int)
+        theta, phi = hp.pix2ang(nside, ipix.astype(np.int64), nest=True)
+        pts = np.column_stack((phi, 0.5 * np.pi - theta))
+        _, hpmap['DISTMU'], hpmap['DISTSIGMA'], hpmap['DISTNORM'] = \
+            skypost3d.posterior(pts, distances=True)
         hpmap.meta['distmean'] = np.mean(dist)
         hpmap.meta['diststd'] = np.std(dist)
 
