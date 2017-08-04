@@ -12,7 +12,6 @@ from lalinference.bayestar import moc
 import numpy as np
 import healpy as hp
 import os
-import sys
 import six.moves.cPickle as pickle
 import sky_area.sky_area_clustering as sac
 
