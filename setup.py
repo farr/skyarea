@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='skyarea',
     packages=['sky_area'],
-    scripts=['bin/make_search_map', 'bin/process_areas', 'bin/run_sky_area'],
+    scripts=['bin/run_sky_area'],
     version='0.2.1',
     description='Compute credible regions on the sky from RA-DEC MCMC samples',
     author='Will M. Farr',
@@ -11,7 +11,8 @@ setup(
     url='http://farr.github.io/skyarea/',
     license='MIT',
     keywords='MCMC credible regions skymap LIGO',
-    install_requires=['numpy', 'matplotlib', 'scipy', 'healpy', 'glue', 'six'],
+    install_requires=['astropy', 'numpy', 'matplotlib', 'scipy', 'healpy',
+                      'six'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Science/Research',
                  'License :: OSI Approved :: MIT License',

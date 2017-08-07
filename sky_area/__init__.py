@@ -1,1 +1,1 @@
-__all__ = ['search', 'sky_area_clustering']
+__all__ = ['sky_area_clustering']

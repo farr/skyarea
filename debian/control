@@ -11,7 +11,7 @@ Build-Depends:
  python-six,
  python-healpy,
  python-glue,
- lalinference-python,
+ lalinference-python (>= 1.9.4),
  python-setuptools,
  debhelper (>= 9),
  dh-python,
