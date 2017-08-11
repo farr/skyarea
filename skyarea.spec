@@ -1,6 +1,6 @@
 Summary: Compute credible regions on the sky from RA-DEC MCMC samples
 Name: skyarea
-Version: 0.2.1
+Version: 0.3.0
 Release: 1%{?dist}
 Source: https://github.com/farr/skyarea/archive/v%{version}/%{name}-%{version}.tar.gz
 License: MIT
@@ -32,6 +32,20 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Fri Aug 11 2017 Leo Singer <leo.singer@ligo.org> 0.3.0-1
+
+- This release removes several infrequently used command line arguments
+  and secondary output data products: 2-step area estimation,
+  injection finding, and plotting. This reflects a shift in emphasis
+  from calculating accurate areas to calculating accurate sky maps.
+
+- Generate sky maps using a hybrid of the 2D and 3D KDEs. The 2D KDE has
+  always produced smaller searched areas than the 3D KDE.
+
+- Restructure the class hierarchy to speed up with Python multiprocessing.
+
+- Add organization, command line, and version to FITS header.
+
 * Tue Oct 18 2016 Leo Singer <leo.singer@ligo.org> 0.2.1-1
 
 - Re-release with packaging distributed in upstream tarball
