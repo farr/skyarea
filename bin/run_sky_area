@@ -43,6 +43,7 @@ if __name__ == '__main__':
     from lalinference.io import hdf5
     from astropy.table import Table
     from astropy.time import Time
+    from astropy.utils.misc import NumpyRNGContext
     import numpy as np
     import os
     import sys
@@ -60,7 +61,8 @@ if __name__ == '__main__':
     # Shuffle the data and take a random subsample.
     # Note that if arg.maxpts > len(data), then this
     # just selects the entire array.
-    np.random.shuffle(data)
+    with NumpyRNGContext(0):  # use fixed seed so that results are reproducible
+        np.random.shuffle(data)
     data = data[:args.maxpts]
     try:
         dist = data['dist']
