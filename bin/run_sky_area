@@ -52,6 +52,7 @@ if __name__ == '__main__':
     import sky_area
     import sky_area.sky_area_clustering as sac
 
+    print('reading samples ...')
     try:
         data = hdf5.read_samples(args.samples)
     except IOError:
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     # Shuffle the data and take a random subsample.
     # Note that if arg.maxpts > len(data), then this
     # just selects the entire array.
+    print('taking random subsample of chain ...')
     with NumpyRNGContext(0):  # use fixed seed so that results are reproducible
         np.random.shuffle(data)
     data = data[:args.maxpts]
