@@ -65,8 +65,7 @@ if __name__ == '__main__':
         # just selects the entire array.
         print('taking random subsample of chain ...')
         # use fixed seed so that results are reproducible
-        with NumpyRNGContext(0):
-            data = data[np.random.choice(len(data), args.maxpts, replace=False)]
+        data = data[np.random.choice(len(data), args.maxpts, replace=False)]
     try:
         dist = data['dist']
     except KeyError:
