@@ -92,7 +92,7 @@ def k_means(pts, k):
     return mus, assign
 
 
-def _cluster(cls, pts, trials, i):
+def _cluster(cls, pts, trials, i, seed):
     k = i // trials
     if k == 0:
         raise ValueError('Expected at least one cluster')
@@ -100,7 +100,7 @@ def _cluster(cls, pts, trials, i):
         if k == 1:
             assign = np.zeros(len(pts), dtype=np.intp)
         else:
-            with NumpyRNGContext(i):
+            with NumpyRNGContext(i + seed):
                 _, assign = k_means(pts, k)
         obj = cls(pts, assign=assign)
     except np.linalg.LinAlgError:
@@ -126,7 +126,14 @@ class ClusteredKDE(object):
         self.multiprocess = multiprocess
         if assign is None:
             print('clustering ...')
-            func = partial(_cluster, type(self), pts, trials)
+            # Make sure that each thread gets a different random number state.
+            # We start by drawing a random integer s in the main thread, and
+            # then the i'th subprocess will seed itself with the integer i + s.
+            #
+            # The seed must be an unsigned 32-bit integer, so if there are n
+            # threads, then s must be drawn from the interval [0, 2**32 - n).
+            seed = np.random.randint(0, 2**32 - max_k * trials)
+            func = partial(_cluster, type(self), pts, trials, seed=seed)
             self.bic, self.k, self.kdes = max(
                 self._map(func, range(trials, (max_k + 1) * trials)))
         else:

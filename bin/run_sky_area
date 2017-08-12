@@ -30,6 +30,9 @@ if __name__ == '__main__':
     parser.add_option('-j', default=False, action='store_true',
                       help='Use all available cores [default: use one core]')
 
+    parser.add_option('--seed', type=int, help='use specified random seed '
+                      '[default: use system entropy]')
+
     parser.add_option('--objid', help='event ID to store in FITS header')
 
     (args, remaining) = parser.parse_args()
@@ -44,7 +47,6 @@ if __name__ == '__main__':
     from lalinference.bayestar.sky_map import rasterize
     from astropy.table import Table
     from astropy.time import Time
-    from astropy.utils.misc import NumpyRNGContext
     import numpy as np
     import os
     import sys
@@ -65,7 +67,9 @@ if __name__ == '__main__':
         # Note that if arg.maxpts > len(data), then this
         # just selects the entire array.
         print('taking random subsample of chain ...')
-        # use fixed seed so that results are reproducible
+        if args.seed is not None:
+            # use fixed seed so that results are reproducible
+            np.random.seed(args.seed)
         data = data[np.random.choice(len(data), args.maxpts, replace=False)]
     try:
         dist = data['dist']
