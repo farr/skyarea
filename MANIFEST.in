@@ -1,2 +1,2 @@
 include *.spec
-include debian
+recursive-include debian *
