@@ -1,10 +1,11 @@
 from setuptools import setup
+from sky_area import __version__ as version
 
 setup(
     name='skyarea',
     packages=['sky_area'],
     scripts=['bin/run_sky_area'],
-    version='0.2.1',
+    version=version,
     description='Compute credible regions on the sky from RA-DEC MCMC samples',
     author='Will M. Farr',
     author_email='will.farr@ligo.org',
