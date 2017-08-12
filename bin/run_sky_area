@@ -59,13 +59,14 @@ if __name__ == '__main__':
         # FIXME: remove this code path once we support only HDF5
         data = Table.read(args.samples, format='ascii')
 
-    # Shuffle the data and take a random subsample.
-    # Note that if arg.maxpts > len(data), then this
-    # just selects the entire array.
-    print('taking random subsample of chain ...')
-    with NumpyRNGContext(0):  # use fixed seed so that results are reproducible
-        np.random.shuffle(data)
-    data = data[:args.maxpts]
+    if args.maxpts is not None:
+        # Shuffle the data and take a random subsample.
+        # Note that if arg.maxpts > len(data), then this
+        # just selects the entire array.
+        print('taking random subsample of chain ...')
+        # use fixed seed so that results are reproducible
+        with NumpyRNGContext(0):
+            data = data[np.random.choice(len(data), args.maxpts, replace=False)]
     try:
         dist = data['dist']
     except KeyError:
