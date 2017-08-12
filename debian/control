@@ -6,7 +6,6 @@ Section: python
 Build-Depends:
  python,
  python-numpy,
- python-matplotlib,
  python-scipy,
  python-six,
  python-healpy,
