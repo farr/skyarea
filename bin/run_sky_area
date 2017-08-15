@@ -41,6 +41,7 @@ if __name__ == '__main__':
     from distutils.dir_util import mkpath
     from lalinference.io import fits
     from lalinference.io import hdf5
+    from lalinference.bayestar.sky_map import rasterize
     from astropy.table import Table
     from astropy.time import Time
     from astropy.utils.misc import NumpyRNGContext
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         skypost.multiprocess = args.j
 
     print('making skymap ...')
-    hpmap = skypost.as_healpix()
+    hpmap = rasterize(skypost.as_healpix())
     hpmap.meta['creator'] = parser.get_prog_name()
     hpmap.meta['origin'] = 'LIGO/Virgo'
     hpmap.meta['gps_creation_time'] = Time.now().gps
