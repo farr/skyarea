@@ -1,4 +1,17 @@
-skyarea (0.3.0-1) UNRELEASED; urgency=medium
+skyarea (0.3.2-1) UNRELEASED; urgency=medium
+
+  * This release is identical to 0.3.1, except that the RPM and Debian
+    changelogs (which are embedded in the source tarball) have been updated.
+
+  * Bring back the --seed option and make sure that it works correctly with
+    multiprocessing.
+
+  * Output sky maps in standard, fixed-resolution HEALPix format rather
+    than the more esoteric multi-resolution format.
+
+ -- Leo Singer <leo.singer@ligo.org>  Fri, 18 Aug 2017 11:30:51 -0400
+
+skyarea (0.3.0-1) unstable; urgency=medium
 
   * This release removes several infrequently used command line arguments
     and secondary output data products: 2-step area estimation,
@@ -12,7 +25,7 @@ skyarea (0.3.0-1) UNRELEASED; urgency=medium
 
   * Add organization, command line, and version to FITS header.
 
- -- Leo Singer <leo.singer@ligo.org>  Fri, 11 Aug 2017 20:12:44 -0400
+ -- Leo Singer <leo.singer@ligo.org>  Fri, 18 Aug 2017 11:30:35 -0400
 
 skyarea (0.2-1) unstable; urgency=medium
 
