@@ -1,6 +1,6 @@
 Summary: Compute credible regions on the sky from RA-DEC MCMC samples
 Name: skyarea
-Version: 0.3.0
+Version: 0.3.2
 Release: 1%{?dist}
 Source: https://github.com/farr/skyarea/archive/v%{version}/%{name}-%{version}.tar.gz
 License: MIT
@@ -32,6 +32,17 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Fri Aug 18 2017 Leo Singer <leo.singer@ligo.org> 0.3.2-1
+
+- This release is identical to 0.3.1, except that the RPM and Debian
+  changelogs (which are embedded in the source tarball) have been updated.
+
+- Bring back the --seed option and make sure that it works correctly with
+  multiprocessing.
+
+- Output sky maps in standard, fixed-resolution HEALPix format rather
+  than the more esoteric multi-resolution format.
+
 * Fri Aug 11 2017 Leo Singer <leo.singer@ligo.org> 0.3.0-1
 
 - This release removes several infrequently used command line arguments
