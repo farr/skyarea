@@ -237,7 +237,7 @@ class SkyKDE(ClusteredKDE):
         for iround in range(rounds - 1):
             print('adaptive refinement round {} of {} ...'.format(
                   iround + 1, rounds - 1))
-            cells = sorted(cells, key=lambda (p, n, i): p / n**2)
+            cells = sorted(cells, key=lambda p_n_i: p_n_i[0] / p_n_i[1]**2)
             new_nside, new_ipix = np.transpose([
                 (nside * 2, ipix * 4 + i)
                 for _, nside, ipix in cells[-nrefine:] for i in range(4)])
