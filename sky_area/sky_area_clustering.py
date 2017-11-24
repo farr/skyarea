@@ -316,8 +316,7 @@ class Clustered2DSkyKDE(SkyKDE):
         frame = EigenFrame.for_coords(SkyCoord(*pts.T, unit='rad'))
         name = '{:s}_{:x}'.format(cls.__name__, id(frame))
         new_cls = type(name, (cls,), {'frame': frame})
-        return super(Clustered2DSkyKDE, cls).__new__(
-            new_cls, pts, *args, **kwargs)
+        return super(Clustered2DSkyKDE, cls).__new__(new_cls)
 
     @classmethod
     def __reduce__(cls):
