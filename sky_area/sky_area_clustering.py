@@ -135,7 +135,8 @@ class ClusteredKDE(object):
             seed = np.random.randint(0, 2**32 - max_k * trials)
             func = partial(_cluster, type(self), pts, trials, seed=seed)
             self.bic, self.k, self.kdes = max(
-                self._map(func, range(trials, (max_k + 1) * trials)))
+                self._map(func, range(trials, (max_k + 1) * trials)),
+                key=lambda items: items[:2])
         else:
             # Build KDEs for each cluster, skipping degenerate clusters
             self.kdes = []
