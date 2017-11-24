@@ -10,7 +10,6 @@ import numpy.linalg as nl
 from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance, moc
 from functools import partial
-from six.moves import copyreg
 
 __all__ = ('Clustered2DSkyKDE', 'Clustered3DSkyKDE', 'Clustered2Plus1DSkyKDE')
 
@@ -267,13 +266,12 @@ class SkyKDE(ClusteredKDE):
         return Table([uniq, post], names=['UNIQ', 'PROBDENSITY'])
 
 
-class _Clustered2DSkyKDEMeta(type):
-    """This metaclass is required to make classes picklable because
-    our __new__ method dynamically creates a class that is not literally
-    present in the module."""
-def _Clustered2DSkyKDEMeta_pickle(cls):
-    return type, (cls.__name__, cls.__bases__, {'frame': cls.frame})
-copyreg.pickle(_Clustered2DSkyKDEMeta, _Clustered2DSkyKDEMeta_pickle)
+# FIXME: in Python 3, make this a class method.
+# Python 2 is picky about pickling bound class methods.
+def _factory(cls, frame):
+    name = '{:s}_{:x}'.format(cls.__name__, id(frame))
+    new_cls = type(name, (cls,), {'frame': frame})
+    return super(Clustered2DSkyKDE, cls).__new__(new_cls)
 
 
 class Clustered2DSkyKDE(SkyKDE):
@@ -304,7 +302,6 @@ class Clustered2DSkyKDE(SkyKDE):
 
     """
 
-    __metaclass__ = _Clustered2DSkyKDEMeta
     frame = None
 
     @classmethod
@@ -314,16 +311,10 @@ class Clustered2DSkyKDE(SkyKDE):
 
     def __new__(cls, pts, *args, **kwargs):
         frame = EigenFrame.for_coords(SkyCoord(*pts.T, unit='rad'))
-        name = '{:s}_{:x}'.format(cls.__name__, id(frame))
-        new_cls = type(name, (cls,), {'frame': frame})
-        return super(Clustered2DSkyKDE, cls).__new__(new_cls)
+        return _factory(cls, frame)
 
-    @classmethod
-    def __reduce__(cls):
-        """This method is required to make instances picklable because
-        our __new__ method dynamically creates a class that is not literally
-        present in the module."""
-        return type, (cls.__name__, cls.__bases__, {'frame': cls.frame})
+    def __reduce__(self):
+        return _factory, (Clustered2DSkyKDE, self.frame,), self.__dict__
 
     def eval_kdes(self, pts):
         base = super(Clustered2DSkyKDE, self).eval_kdes
