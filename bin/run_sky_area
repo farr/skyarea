@@ -95,10 +95,10 @@ if __name__ == '__main__':
         skypost = cls(pts, trials=args.trials, multiprocess=args.j)
 
         print('pickling ...')
-        with open(os.path.join(args.outdir, 'skypost.obj'), 'w') as out:
+        with open(os.path.join(args.outdir, 'skypost.obj'), 'wb') as out:
             pickle.dump(skypost, out)
     else:
-        with open(args.loadpost, 'r') as inp:
+        with open(args.loadpost, 'rb') as inp:
             skypost = pickle.load(inp)
         skypost.multiprocess = args.j
 
