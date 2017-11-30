@@ -268,13 +268,30 @@ class SkyKDE(ClusteredKDE):
         return Table([uniq, post], names=['UNIQ', 'PROBDENSITY'])
 
 
+# We have to put in some hooks to make instances of Clustered2DSkyKDE picklable
+# because we dynamically create subclasses with different values of the 'frame'
+# class variable. This gets even trickier because we need both the class and
+# instance objects to be picklable.
+
 class _Clustered2DSkyKDEMeta(type):
-    """This metaclass is required to make classes picklable because
-    our __new__ method dynamically creates a class that is not literally
-    present in the module."""
+    """Metaclass to make dynamically created subclasses of Clustered2DSkyKDE
+    picklable."""
+
 def _Clustered2DSkyKDEMeta_pickle(cls):
+    """Pickle dynamically created subclasses of Clustered2DSkyKDE."""
     return type, (cls.__name__, cls.__bases__, {'frame': cls.frame})
+
+# Register function to pickle subclasses of Clustered2DSkyKDE.
 copyreg.pickle(_Clustered2DSkyKDEMeta, _Clustered2DSkyKDEMeta_pickle)
+
+def _Clustered2DSkyKDE_factory(name, frame):
+    """Unpickle instances of dynamically created subclasses of
+    Clustered2DSkyKDE.
+
+    FIXME: In Python 3, we could make this a class method of Clustered2DSkyKDE.
+    Unfortunately, Python 2 is picky about pickling bound class methods."""
+    new_cls = type(name, (Clustered2DSkyKDE,), {'frame': frame})
+    return super(Clustered2DSkyKDE, Clustered2DSkyKDE).__new__(new_cls)
 
 
 class Clustered2DSkyKDE(with_metaclass(_Clustered2DSkyKDEMeta, SkyKDE)):
@@ -318,12 +335,11 @@ class Clustered2DSkyKDE(with_metaclass(_Clustered2DSkyKDEMeta, SkyKDE)):
         new_cls = type(name, (cls,), {'frame': frame})
         return super(Clustered2DSkyKDE, cls).__new__(new_cls)
 
-    @classmethod
-    def __reduce__(cls):
-        """This method is required to make instances picklable because
-        our __new__ method dynamically creates a class that is not literally
-        present in the module."""
-        return type, (cls.__name__, cls.__bases__, {'frame': cls.frame})
+    def __reduce__(self):
+        """Pickle instances of dynamically created subclasses of
+        Clustered2DSkyKDE."""
+        factory_args = self.__class__.__name__, self.frame
+        return _Clustered2DSkyKDE_factory, factory_args, self.__dict__
 
     def eval_kdes(self, pts):
         base = super(Clustered2DSkyKDE, self).eval_kdes
