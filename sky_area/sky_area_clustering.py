@@ -11,6 +11,7 @@ from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance, moc
 from functools import partial
 from six.moves import copyreg
+from six import with_metaclass
 
 __all__ = ('Clustered2DSkyKDE', 'Clustered3DSkyKDE', 'Clustered2Plus1DSkyKDE')
 
@@ -276,7 +277,7 @@ def _Clustered2DSkyKDEMeta_pickle(cls):
 copyreg.pickle(_Clustered2DSkyKDEMeta, _Clustered2DSkyKDEMeta_pickle)
 
 
-class Clustered2DSkyKDE(SkyKDE):
+class Clustered2DSkyKDE(with_metaclass(_Clustered2DSkyKDEMeta, SkyKDE)):
     r"""Represents a kernel-density estimate of a sky-position PDF that has
     been decomposed into clusters, using a different kernel for each
     cluster.
@@ -304,7 +305,6 @@ class Clustered2DSkyKDE(SkyKDE):
 
     """
 
-    __metaclass__ = _Clustered2DSkyKDEMeta
     frame = None
 
     @classmethod
