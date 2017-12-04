@@ -10,6 +10,8 @@ import numpy.linalg as nl
 from scipy.stats import gaussian_kde
 from lalinference.bayestar import distance, moc
 from functools import partial
+from six.moves import copyreg
+from six import with_metaclass
 
 __all__ = ('Clustered2DSkyKDE', 'Clustered3DSkyKDE', 'Clustered2Plus1DSkyKDE')
 
@@ -266,15 +268,33 @@ class SkyKDE(ClusteredKDE):
         return Table([uniq, post], names=['UNIQ', 'PROBDENSITY'])
 
 
-# FIXME: in Python 3, make this a class method.
-# Python 2 is picky about pickling bound class methods.
-def _factory(cls, frame):
-    name = '{:s}_{:x}'.format(cls.__name__, id(frame))
-    new_cls = type(name, (cls,), {'frame': frame})
-    return super(Clustered2DSkyKDE, cls).__new__(new_cls)
+# We have to put in some hooks to make instances of Clustered2DSkyKDE picklable
+# because we dynamically create subclasses with different values of the 'frame'
+# class variable. This gets even trickier because we need both the class and
+# instance objects to be picklable.
+
+class _Clustered2DSkyKDEMeta(type):
+    """Metaclass to make dynamically created subclasses of Clustered2DSkyKDE
+    picklable."""
+
+def _Clustered2DSkyKDEMeta_pickle(cls):
+    """Pickle dynamically created subclasses of Clustered2DSkyKDE."""
+    return type, (cls.__name__, cls.__bases__, {'frame': cls.frame})
+
+# Register function to pickle subclasses of Clustered2DSkyKDE.
+copyreg.pickle(_Clustered2DSkyKDEMeta, _Clustered2DSkyKDEMeta_pickle)
+
+def _Clustered2DSkyKDE_factory(name, frame):
+    """Unpickle instances of dynamically created subclasses of
+    Clustered2DSkyKDE.
+
+    FIXME: In Python 3, we could make this a class method of Clustered2DSkyKDE.
+    Unfortunately, Python 2 is picky about pickling bound class methods."""
+    new_cls = type(name, (Clustered2DSkyKDE,), {'frame': frame})
+    return super(Clustered2DSkyKDE, Clustered2DSkyKDE).__new__(new_cls)
 
 
-class Clustered2DSkyKDE(SkyKDE):
+class Clustered2DSkyKDE(with_metaclass(_Clustered2DSkyKDEMeta, SkyKDE)):
     r"""Represents a kernel-density estimate of a sky-position PDF that has
     been decomposed into clusters, using a different kernel for each
     cluster.
@@ -311,10 +331,15 @@ class Clustered2DSkyKDE(SkyKDE):
 
     def __new__(cls, pts, *args, **kwargs):
         frame = EigenFrame.for_coords(SkyCoord(*pts.T, unit='rad'))
-        return _factory(cls, frame)
+        name = '{:s}_{:x}'.format(cls.__name__, id(frame))
+        new_cls = type(name, (cls,), {'frame': frame})
+        return super(Clustered2DSkyKDE, cls).__new__(new_cls)
 
     def __reduce__(self):
-        return _factory, (Clustered2DSkyKDE, self.frame,), self.__dict__
+        """Pickle instances of dynamically created subclasses of
+        Clustered2DSkyKDE."""
+        factory_args = self.__class__.__name__, self.frame
+        return _Clustered2DSkyKDE_factory, factory_args, self.__dict__
 
     def eval_kdes(self, pts):
         base = super(Clustered2DSkyKDE, self).eval_kdes
